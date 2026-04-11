@@ -1,0 +1,142 @@
+networks:
+  honeypot-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/24
+
+services:
+
+  # -------------------------------------------------------------------------
+  # Cowrie — fake SSH honeypot
+  # -------------------------------------------------------------------------
+  cowrie:
+    # Pinned to digest — Cowrie does not publish versioned tags.
+    # To update: docker pull cowrie/cowrie:latest && docker inspect cowrie/cowrie:latest --format '{{index .RepoDigests 0}}'
+    image: cowrie/cowrie@sha256:a2e74d2fbd53f86098d8c366e14ad6656c92c8c1ab36de68ca46e26fe9ab294e
+    container_name: cowrie
+    restart: unless-stopped
+    networks:
+      honeypot-net:
+        ipv4_address: 172.18.0.10
+    ports:
+      - "2222:2222"
+      - "2223:2223"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+    volumes:
+      - cowrie-logs:/cowrie/cowrie-git/var/log/cowrie
+      - ./cowrie.cfg:/cowrie/cowrie-git/etc/cowrie.cfg:ro
+
+  # -------------------------------------------------------------------------
+  # Elasticsearch — log storage and query engine
+  # -------------------------------------------------------------------------
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: elasticsearch
+    restart: unless-stopped
+    networks:
+      honeypot-net:
+        ipv4_address: 172.18.0.20
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false   # disabled for local dev simplicity
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    deploy:
+      resources:
+        limits:
+          memory: 1200m
+          cpus: "1.0"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # -------------------------------------------------------------------------
+  # Kibana — visualization dashboard
+  # -------------------------------------------------------------------------
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: kibana
+    restart: unless-stopped
+    networks:
+      honeypot-net:
+        ipv4_address: 172.18.0.21
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://172.18.0.20:9200
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: "0.5"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  # -------------------------------------------------------------------------
+  # Log Forwarder — reads cowrie.json and pushes to Elasticsearch
+  # -------------------------------------------------------------------------
+  forwarder:
+    build:
+      context: ../logging
+      dockerfile: Dockerfile
+    container_name: forwarder
+    restart: unless-stopped
+    networks:
+      honeypot-net:
+        ipv4_address: 172.18.0.25
+    environment:
+      - ES_HOST=http://172.18.0.20:9200
+      - COWRIE_LOG_PATH=/logs/cowrie.json
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: "0.25"
+    volumes:
+      - cowrie-logs:/logs:ro   # read-only access to Cowrie logs
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  # -------------------------------------------------------------------------
+  # Attacker — simulated attacker container (run on demand only)
+  # Run with: docker compose --profile attack run --rm attacker python simulate.py
+  # -------------------------------------------------------------------------
+  attacker:
+    build:
+      context: ../attacker
+      dockerfile: Dockerfile
+    container_name: attacker
+    networks:
+      honeypot-net:
+        ipv4_address: 172.18.0.5
+    environment:
+      - TARGET_HOST=172.18.0.10
+      - TARGET_PORT=2222
+      - WORDLIST_PATH=/attacker/wordlists/passwords.txt
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: "0.5"
+    depends_on:
+      - cowrie
+    profiles:
+      - attack  # only starts when explicitly requested
+
+volumes:
+  cowrie-logs:
+    driver: local
+  esdata:
+    driver: local

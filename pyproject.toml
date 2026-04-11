@@ -1,0 +1,43 @@
+[project]
+name = "shadowmesh"
+version = "0.1.0"
+description = "ShadowMesh: Self-Adaptive Honeypot using Deep Reinforcement Learning and Generative AI"
+requires-python = ">=3.10"
+
+dependencies = [
+    "gymnasium==0.29.1",
+    "stable-baselines3==2.3.2",
+    "torch==2.2.0",
+    "numpy==1.26.4",
+    "elasticsearch==8.13.0",
+    "requests==2.31.0",
+    "python-dotenv==1.0.1",
+    "pandas==2.2.1",
+    "kafka-python==2.0.2",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.1.1",
+    "pytest-cov==5.0.0",
+    "ruff==0.4.2",
+    "mypy==1.9.0",
+    "pre-commit==3.7.0",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+strict = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=. --cov-report=term-missing"
