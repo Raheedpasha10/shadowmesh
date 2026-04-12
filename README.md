@@ -26,11 +26,13 @@ The system is designed for deployment alongside banking and enterprise infrastru
                           ┌─────────────────────────────┐
                           │        Honeypot Network      │
                           │         172.18.0.0/24        │
-                          │                              │
-  ┌───────────┐  SSH/HTTP │  ┌──────────┐  ┌─────────┐  │
-  │ Attacker  │──────────►│  │  Cowrie  │  │  DVWA   │  │
-  │ Container │           │  │(Fake SSH)│  │(Fake Web│  │
-  └───────────┘           │  └────┬─────┘  └────┬────┘  │
+                          │   ┌─────────────────────┐    │
+                          │   │   Zeek (Sniffer)    │    │
+                          │   └─────────────────────┘    │
+  ┌───────────┐  SSH/HTTP │  ┌──────────┐  ┌─────────┐   │
+  │ Attacker  │──────────►│  │  Cowrie  │  │  DVWA   │   │
+  │ Container │           │  │(Fake SSH)│  │(Fake Web│   │
+  └───────────┘           │  └────┬─────┘  └────┬────┘   │
                           │       │              │       │
                           │       └──────┬───────┘       │
                           │              │ raw logs       │
