@@ -342,25 +342,26 @@ def calculate_reward(prev_state, current_state, action, fingerprinted):
 **Who produces this:** Raheed + Pranathi (Month 4)
 **Who consumes this:** Cowrie filesystem (fake files injected here)
 
-### Ollama API Call Format
+### LiteLLM / OpenRouter API Call Format
 
 ```python
-import requests
+import os
+from litellm import completion
 
 def generate_fake_content(content_type: str, context: dict) -> str:
     prompt_map = {
-        "bash_history": f"Generate a realistic bash history for a Linux bank server admin. Include common admin commands. Output only the commands, one per line. No explanations.",
-        "credentials":  f"Generate a fake credentials file for a banking application. Include usernames and hashed passwords. Make it look realistic but completely fake.",
-        "document":     f"Generate a fake internal memo for a banking company about {context.get('topic', 'server maintenance')}. 150-200 words.",
-        "passwd":       f"Generate 10 lines for /etc/passwd in a Linux server. Use realistic Unix usernames. Follow exact /etc/passwd format."
+        "bash_history": f"Generate a realistic bash history for a Linux server. Only commands, one per line.",
+        "credentials":  f"Generate a fake credentials file for a banking app with users and hashed passwords.",
+        "document":     f"Generate a fake internal memo about {context.get('topic', 'server maintenance')}.",
+        "passwd":       f"Generate 10 lines for /etc/passwd mimicking a Linux server."
     }
 
-    response = requests.post("http://localhost:11434/api/generate", json={
-        "model":  "llama3.2",
-        "prompt": prompt_map[content_type],
-        "stream": False
-    })
-    return response.json()["response"]
+    response = completion(
+        model=os.getenv("LLM_MODEL", "openrouter/meta-llama/llama-3-8b-instruct:free"),
+        messages=[{"role": "user", "content": prompt_map[content_type]}],
+        api_key=os.getenv("OPENROUTER_API_KEY")
+    )
+    return response.choices[0].message.content
 ```
 
 ### Generated File Manifest (Written After Each Generation Run)
@@ -503,7 +504,7 @@ Elasticsearch record in `honeypot-generated-rules`:
 | `attacker` | Simulated Attacker | 172.18.0.5 | — |
 | `rl-agent` | AI Brain | 172.18.0.30 | — (no exposed port) |
 | `rule-gen` | Rule Generator | 172.18.0.31 | — |
-| `gen-content` | Generative Layer | 172.18.0.32 | 11434 (Ollama) |
+| `gen-content` | Generative Layer | 172.18.0.32 | — (Calls Cloud API) |
 
 **Docker network name:** `honeypot-net`
 **Subnet:** `172.18.0.0/24`
@@ -531,7 +532,7 @@ elasticsearch==8.13.0
 kafka-python==2.0.2
 
 # Generative Layer
-requests==2.31.0     # for Ollama API calls
+litellm==1.35.0      # for Cloud LLM routing (OpenRouter)
 
 # Utilities
 python-dotenv==1.0.1
@@ -557,10 +558,9 @@ ES_INDEX_RULES=honeypot-generated-rules
 # Kafka (optional)
 KAFKA_BROKER=172.18.0.22:9092
 
-# Ollama
-OLLAMA_HOST=172.18.0.32
-OLLAMA_PORT=11434
-OLLAMA_MODEL=llama3.2
+# OpenRouter Cloud API
+OPENROUTER_API_KEY=your_api_key_here
+LLM_MODEL=openrouter/meta-llama/llama-3-8b-instruct:free
 
 # Cowrie
 COWRIE_LOG_PATH=/var/log/cowrie/cowrie.json
