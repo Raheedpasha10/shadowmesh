@@ -77,8 +77,8 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
-          cpus: "0.5"
+          memory: 1500m
+          cpus: "1.0"
     depends_on:
       elasticsearch:
         condition: service_healthy
