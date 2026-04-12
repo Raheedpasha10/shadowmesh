@@ -110,8 +110,8 @@ shadowmesh/
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/Raheedpasha10/adaptive-honeypot.git
-cd adaptive-honeypot
+git clone https://github.com/Raheedpasha10/shadowmesh.git
+cd shadowmesh
 ```
 
 **2. Configure environment variables**
@@ -198,10 +198,10 @@ See [`docs/CONTRIBUTING.md`](docs/CONTRIBUTING.md) for:
 
 ## References
 
-1. Jiang, J. et al. (2023). *HoneyPot with Reinforcement Learning.* IEEE S&P Workshop on Deep Learning Security.
-2. Milajerdi, S. M. et al. (2023). *POIROT: Aligning Attack Behavior with Kernel Audit Records for Cyber Threat Hunting.*
-3. Schulman, J. et al. (2017). *Proximal Policy Optimization Algorithms.* arXiv:1707.06347.
-4. OpenAI (2016). *Generative Adversarial Imitation Learning.*
+1. Păuna, A., & Bica, I. (2014). *RASSH — Reinforced Adaptive SSH Honeypot*. 2014 10th International Conference on Communications (COMM). DOI: 10.1109/ICCOMM.2014.6866707
+2. Ahmed, R., et al. (2025). *SPADE: Enhancing Adaptive Cyber Deception Strategies with Generative AI and Structured Prompt Engineering*. arXiv:2501.00940.
+3. JohannesLks (2024). *ADLAH: Adaptive multi-layered honeynet architecture for threat behavior analysis via machine learning, selective escalation, and deception-driven telemetry*.
+4. Schulman, J., et al. (2017). *Proximal Policy Optimization Algorithms*. arXiv:1707.06347.
 
 ---
 
