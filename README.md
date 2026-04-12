@@ -14,7 +14,7 @@
 
 Traditional honeypots deploy static, fingerprint-prone decoy environments that sophisticated attackers detect and abandon within seconds. ShadowMesh addresses this limitation by combining three independently novel components into a unified, open-source framework.
 
-A **Deep Reinforcement Learning agent** (Proximal Policy Optimization) observes attacker behaviour in real time and selects environment-modification actions designed to maximize engagement duration. A **generative content layer** driven by a locally hosted large language model continuously refreshes the honeypot filesystem, logs, and credential artifacts to prevent fingerprinting through content pattern analysis. An **automated threat intelligence pipeline** converts captured attacker TTPs directly into deployment-ready Snort and YARA detection rules, requiring no human analyst intervention.
+A **Deep Reinforcement Learning agent** (Proximal Policy Optimization) observes attacker behaviour in real time and selects environment-modification actions designed to maximize engagement duration. A **generative content layer** driven by a high-performance cloud LLM (via OpenRouter API) continuously refreshes the honeypot filesystem, logs, and credential artifacts to prevent fingerprinting through content pattern analysis. An **automated threat intelligence pipeline** converts captured attacker TTPs directly into deployment-ready Snort and YARA detection rules, requiring no human analyst intervention.
 
 The system is designed for deployment alongside banking and enterprise infrastructure as a parallel decoy environment, providing simultaneous attacker intelligence collection and live defensive rule generation.
 
@@ -55,7 +55,7 @@ The system is designed for deployment alongside banking and enterprise infrastru
                           │ ┌──────────┐                 │
                           │ │Generative│                 │
                           │ │  Layer   │                 │
-                          │ │ (Ollama) │                 │
+                          │ │(OpenRouter)│                 │
                           │ └──────────┘                 │
                           └─────────────────────────────┘
 ```
@@ -72,7 +72,7 @@ The system is designed for deployment alongside banking and enterprise infrastru
 | Log Storage | Elasticsearch 8.13 | Centralized, queryable log storage |
 | Visualization | Kibana 8.13 | Real-time attack session dashboard |
 | RL Agent | Stable-Baselines3 (PPO) | Adaptive environment modification via reinforcement learning |
-| Generative Layer | Ollama + Llama 3.2 | Local LLM for fake filesystem and credential generation |
+| Generative Layer | LiteLLM + OpenRouter API | Cloud-based LLM routing for fast, hardware-agnostic fake credential and filesystem generation |
 | Rule Generator | Custom Python | Converts captured TTPs to Snort / YARA detection rules |
 | Attacker Simulation | Paramiko + python-nmap | Three-profile automated attack simulation for training data |
 
