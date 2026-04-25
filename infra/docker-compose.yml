@@ -30,6 +30,15 @@ services:
     volumes:
       - cowrie-logs:/cowrie/cowrie-git/var/log/cowrie
       - ./cowrie.cfg:/cowrie/cowrie-git/etc/cowrie.cfg:ro
+      # Generated bait files override Cowrie honeyfs content at realistic paths.
+      # Verified against Cowrie's official honeyfs documentation:
+      # https://docs.cowrie.org/en/latest/HONEYFS.html
+      - ../generative/cache/passwd:/cowrie/cowrie-git/honeyfs/etc/passwd:ro
+      - ../generative/cache/shadow:/cowrie/cowrie-git/honeyfs/etc/shadow:ro
+      - ../generative/cache/bash_history.txt:/cowrie/cowrie-git/honeyfs/home/admin/.bash_history:ro
+      - ../generative/cache/db_config.php:/cowrie/cowrie-git/honeyfs/var/www/html/config.php:ro
+      - ../generative/cache/.env:/cowrie/cowrie-git/honeyfs/opt/novapay/.env:ro
+      - ../generative/cache/id_rsa:/cowrie/cowrie-git/honeyfs/home/admin/.ssh/id_rsa:ro
 
   # -------------------------------------------------------------------------
   # Elasticsearch — log storage and query engine
