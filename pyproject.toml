@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "shadowmesh"
 version = "0.1.0"
@@ -41,3 +45,6 @@ strict = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--cov=. --cov-report=term-missing"
+
+[tool.setuptools]
+packages = ["agent", "rules"]

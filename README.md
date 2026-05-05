@@ -44,6 +44,7 @@ ShadowMesh is under active development. At the time of writing, the repository i
 - an **OpenRouter-backed generative layer** that creates realistic bait artifacts for the honeypot filesystem
 - a **rule-generation module** that derives first-pass Snort and YARA artifacts from session summaries
 - an **RL contract scaffold** that defines the observation space, action space, and action logging interface
+- a **live adaptive bridge** that can log baseline actions and materialize selected bait files into Cowrie during active SSH sessions
 
 Planned next milestones include:
 
@@ -106,6 +107,7 @@ Planned next milestones include:
 | Generative Layer | LiteLLM + OpenRouter API | Produces realistic bait files for deception and anti-fingerprinting |
 | Rule Generation | Python + Elasticsearch | Converts session summaries into Snort and YARA artifacts |
 | Agent Scaffold | Gymnasium + NumPy | Defines the RL observation/action contract and logs agent decisions |
+| Adaptive Bridge | Agent runner + executor | Applies selected actions back into Cowrie during live sessions |
 
 ---
 
@@ -226,6 +228,9 @@ python3 rules/generator.py
 
 # Generate rules for a specific session without indexing the output
 python3 rules/generator.py --session-id <session_id> --dry-run
+
+# Include still-active sessions if you are debugging the live loop
+python3 rules/generator.py --include-active --limit 3 --dry-run
 ```
 
 Generated rule artifacts are written to `rules/output/YYYY-MM-DD/` and kept out of Git.
@@ -239,8 +244,24 @@ The `agent/` directory now contains the contract-aligned groundwork for the adap
 - `contracts.py` defines the exact state vector and discrete action map from `data_contracts.md`
 - `runtime.py` provides an Elasticsearch-backed action logger for `honeypot-rl-actions`
 - `environment.py` exposes a lightweight Gymnasium environment stub for replaying session summaries
+- `runner.py` emits deterministic baseline actions from live `honeypot-sessions`
+- `executor.py` materializes the first supported adaptive actions back into Cowrie
+- `export_sessions.py`, `train.py`, and `evaluate.py` support replay export, offline PPO runs, and final comparison work
 
 This is intentionally a scaffold, not a trained PPO agent yet. It gives the team a stable integration surface before model training starts.
+
+### Adaptive Loop
+
+The current live loop is deliberately small and SSH-first:
+
+1. Cowrie events are normalized into Elasticsearch.
+2. `honeypot-sessions` is updated while the session is still active.
+3. `agent-runner` applies a baseline policy such as `show_fake_credentials_on_login_success`.
+4. The resulting action is logged into `honeypot-rl-actions`.
+5. `action-executor` materializes the corresponding bait file into Cowrie's honeyfs.
+6. The attacker can later discover that new file during the same SSH session.
+
+This gives the project a real adaptive control path before PPO training is introduced.
 
 ---
 

@@ -46,6 +46,7 @@ agent/tensorboard_logs/
 # GENERATED RULES OUTPUT (auto-generated, not source code)
 # =============================================================================
 rules/output/
+scratch/session_replays/
 
 # =============================================================================
 # GENERATED BAIT CONTENT (local AI output, not source code)

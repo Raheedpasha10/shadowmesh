@@ -6,8 +6,9 @@ Cowrie → Elasticsearch log forwarder.
 Continuously tails cowrie.json, normalizes each event to the schema
 defined in data_contracts.md (Section 3), and indexes it into Elasticsearch.
 
-When a cowrie.session.closed event is received, it also builds and indexes
-a session summary document into honeypot-sessions for the RL agent to read.
+As the session evolves, it also keeps the corresponding honeypot-sessions
+document up to date so downstream components can react before the attacker
+disconnects.
 
 Usage:
   python forwarder.py
@@ -137,6 +138,9 @@ def create_index_mappings(client: Elasticsearch) -> None:
                 "file_hashes":          {"type": "keyword"},
                 "brute_force_detected": {"type": "boolean"},
                 "usernames_tried":      {"type": "keyword"},
+                "ttp_count":            {"type": "integer"},
+                "session_active":       {"type": "boolean"},
+                "last_event_type":      {"type": "keyword"},
                 "session_start":        {"type": "date"},
                 "session_end":          {"type": "date"},
             }
@@ -206,10 +210,11 @@ def _to_float(value: object) -> float | None:
 # ---------------------------------------------------------------------------
 
 class SessionAggregator:
-    """Tracks in-progress sessions and emits summaries on session close.
+    """Tracks in-progress sessions and emits summaries on every event.
 
-    Accumulates events keyed by session_id until a cowrie.session.closed
-    event is seen, then produces a session summary document for Elasticsearch.
+    Accumulates events keyed by session_id and continuously rebuilds the
+    corresponding `honeypot-sessions` document so the agent can observe live
+    sessions before the close event arrives.
     """
 
     def __init__(self) -> None:
@@ -223,18 +228,20 @@ class SessionAggregator:
             "file_hashes":      [],
             "usernames_tried":  [],
             "session_start":    None,
+            "last_event_ts":    None,
+            "last_event_type":  None,
             "session_end":      None,
             "duration":         0.0,
         })
 
-    def ingest(self, raw: dict) -> dict | None:
-        """Process one raw Cowrie event and return a session summary if ready.
+    def ingest(self, raw: dict) -> tuple[dict, bool]:
+        """Process one raw Cowrie event and return the current session summary.
 
         Args:
             raw: Raw JSON event from cowrie.json.
 
         Returns:
-            Session summary dict if the session just closed, else None.
+            Tuple of (session summary document, session_closed flag).
         """
         event_id = raw.get("eventid", "")
         session_id = raw.get("session", "")
@@ -245,6 +252,8 @@ class SessionAggregator:
 
         if not state["session_start"]:
             state["session_start"] = raw.get("timestamp")
+        state["last_event_ts"] = raw.get("timestamp")
+        state["last_event_type"] = event_id
 
         if event_id == "cowrie.login.failed":
             state["login_attempts"] += 1
@@ -274,15 +283,26 @@ class SessionAggregator:
 
         elif event_id == "cowrie.session.closed":
             state["session_end"] = raw.get("timestamp")
-            state["duration"] = _to_float(raw.get("duration")) or 0.0
+            state["duration"] = self._calculate_duration(
+                state["session_start"],
+                state["session_end"],
+                raw.get("duration"),
+            )
 
-            summary = self._build_summary(session_id, state)
+            summary = self._build_summary(session_id, state, session_active=False)
             del self._sessions[session_id]
-            return summary
+            return summary, True
 
-        return None
+        summary = self._build_summary(session_id, state, session_active=True)
+        return summary, False
 
-    def _build_summary(self, session_id: str, state: dict) -> dict:
+    def _build_summary(
+        self,
+        session_id: str,
+        state: dict,
+        *,
+        session_active: bool,
+    ) -> dict:
         """Build the final session summary document.
 
         Args:
@@ -293,12 +313,19 @@ class SessionAggregator:
             Session summary document matching data_contracts.md Section 3.
         """
         commands = state["commands"]
+        duration = state["duration"]
+        if session_active:
+            duration = self._calculate_duration(
+                state["session_start"],
+                state["last_event_ts"],
+                None,
+            )
         return {
-            "@timestamp":           state["session_end"] or datetime.now(timezone.utc).isoformat(),
+            "@timestamp":           state["last_event_ts"] or datetime.now(timezone.utc).isoformat(),
             "session_id":           session_id,
             "attacker_ip":          state["attacker_ip"],
             "service":              state["service"],
-            "session_duration":     state["duration"],
+            "session_duration":     duration,
             "login_attempts":       state["login_attempts"],
             "login_success":        state["login_success"],
             "commands":             commands,
@@ -308,10 +335,30 @@ class SessionAggregator:
             "file_hashes":          state["file_hashes"],
             "brute_force_detected": state["login_attempts"] > 3,
             "ttp_count":            _estimate_ttp_count(commands),
+            "session_active":       session_active,
+            "last_event_type":      state["last_event_type"],
             "usernames_tried":      state["usernames_tried"],
             "session_start":        state["session_start"],
             "session_end":          state["session_end"],
         }
+
+    def _calculate_duration(
+        self,
+        start_ts: str | None,
+        end_ts: str | None,
+        explicit_duration: object,
+    ) -> float:
+        parsed = _to_float(explicit_duration)
+        if parsed is not None:
+            return parsed
+        if not start_ts or not end_ts:
+            return 0.0
+        try:
+            start = datetime.fromisoformat(start_ts.replace("Z", "+00:00"))
+            end = datetime.fromisoformat(end_ts.replace("Z", "+00:00"))
+        except ValueError:
+            return 0.0
+        return max((end - start).total_seconds(), 0.0)
 
 
 def _estimate_ttp_count(commands: list[str]) -> int:
@@ -448,23 +495,23 @@ def main() -> None:
             logger.error("Failed to index event: %s", exc)
             continue
 
-        # Check if a session summary should be emitted
-        session_summary = aggregator.ingest(raw)
-        if session_summary:
-            try:
-                client.index(
-                    index=INDEX_SESSIONS,
-                    id=session_summary["session_id"],   # use session_id as doc ID
-                    document=session_summary,
-                )
+        # Upsert the rolling session summary so downstream modules can react live.
+        session_summary, session_closed = aggregator.ingest(raw)
+        try:
+            client.index(
+                index=INDEX_SESSIONS,
+                id=session_summary["session_id"],
+                document=session_summary,
+            )
+            if session_closed:
                 logger.info(
-                    "Session summary indexed — id: %s | commands: %d | ttps: %d",
+                    "Session summary finalized — id: %s | commands: %d | ttps: %d",
                     session_summary["session_id"],
                     session_summary["command_count"],
                     session_summary["ttp_count"],
                 )
-            except TransportError as exc:
-                logger.error("Failed to index session summary: %s", exc)
+        except TransportError as exc:
+            logger.error("Failed to index session summary: %s", exc)
 
 
 if __name__ == "__main__":

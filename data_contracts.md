@@ -230,11 +230,15 @@ This is the aggregated view that the RL agent and rule generator read most. Part
   "file_hashes":         ["d41d8cd98f00b204e9800998ecf8427e"],
   "brute_force_detected": true,
   "ttp_count":           3,
+  "session_active":      false,
+  "last_event_type":     "cowrie.session.closed",
   "usernames_tried":     ["root", "admin", "user", "admin"],
   "session_start":       "2026-04-07T10:20:00.000Z",
   "session_end":         "2026-04-07T10:22:30.000Z"
 }
 ```
+
+`session_active` and `last_event_type` are optional Phase 2 fields used for live adaptive decisions. Existing consumers may ignore them safely.
 
 ---
 

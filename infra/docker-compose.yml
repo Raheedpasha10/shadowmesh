@@ -40,6 +40,8 @@ services:
       - ../generative/cache/db_config.php:/cowrie/cowrie-git/honeyfs/var/www/html/config.php:ro
       - ../generative/cache/.env:/cowrie/cowrie-git/honeyfs/opt/novapay/.env:ro
       - ../generative/cache/id_rsa:/cowrie/cowrie-git/honeyfs/home/admin/.ssh/id_rsa:ro
+      - cowrie-action-loot:/cowrie/cowrie-git/honeyfs/home/admin/loot
+      - cowrie-action-aws:/cowrie/cowrie-git/honeyfs/home/admin/.aws
 
   # -------------------------------------------------------------------------
   # Elasticsearch — log storage and query engine
@@ -135,6 +137,7 @@ services:
       - TARGET_HOST=172.18.0.10
       - TARGET_PORT=2222
       - WORDLIST_PATH=/attacker/wordlists/passwords.txt
+      - POST_LOGIN_INITIAL_DELAY_SECONDS=2.0
     deploy:
       resources:
         limits:
@@ -145,8 +148,62 @@ services:
     profiles:
       - attack  # only starts when explicitly requested
 
+  # -------------------------------------------------------------------------
+  # Agent Runner — polls live sessions and emits baseline adaptive actions
+  # -------------------------------------------------------------------------
+  agent-runner:
+    build:
+      context: ..
+      dockerfile: agent/Dockerfile
+    container_name: agent-runner
+    restart: unless-stopped
+    command: ["python", "-m", "agent.runner"]
+    networks:
+      honeypot-net:
+        ipv4_address: 172.18.0.30
+    environment:
+      - ES_HOST=http://172.18.0.20:9200
+      - ES_INDEX_SESSIONS=honeypot-sessions
+      - ES_INDEX_ACTIONS=honeypot-rl-actions
+      - AGENT_POLICY=show_fake_credentials_on_login_success
+      - AGENT_POLL_INTERVAL_SECONDS=1.0
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  # -------------------------------------------------------------------------
+  # Action Executor — materializes selected RL actions into Cowrie honeyfs
+  # -------------------------------------------------------------------------
+  action-executor:
+    build:
+      context: ..
+      dockerfile: agent/Dockerfile
+    container_name: action-executor
+    restart: unless-stopped
+    user: "0:0"
+    command: ["python", "-m", "agent.executor"]
+    networks:
+      honeypot-net:
+        ipv4_address: 172.18.0.31
+    environment:
+      - ES_HOST=http://172.18.0.20:9200
+      - ES_INDEX_ACTIONS=honeypot-rl-actions
+      - ACTION_EXECUTOR_POLL_INTERVAL_SECONDS=1.0
+      - ACTION_LOOT_DIR=/actions/loot
+      - ACTION_AWS_DIR=/actions/aws
+    volumes:
+      - cowrie-action-loot:/actions/loot
+      - cowrie-action-aws:/actions/aws
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
 volumes:
   cowrie-logs:
     driver: local
   esdata:
+    driver: local
+  cowrie-action-loot:
+    driver: local
+  cowrie-action-aws:
     driver: local

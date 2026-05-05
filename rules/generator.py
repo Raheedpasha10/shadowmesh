@@ -14,8 +14,9 @@ import logging
 import os
 import re
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 from elasticsearch import Elasticsearch
@@ -163,15 +164,23 @@ class RuleGenerator:
         service = _canonical_service(session.service)
         port = _service_port(service)
         rules: list[str] = []
+        seen_signatures: set[str] = set()
+
+        def add_rule(signature: str, rule_text: str) -> None:
+            if signature in seen_signatures:
+                return
+            seen_signatures.add(signature)
+            rules.append(rule_text)
 
         if session.brute_force_detected or session.login_attempts >= 3:
             sid = self.sid_allocator.next_sid(service)
-            rules.append(
+            add_rule(
+                "ssh_bruteforce",
                 (
                     f'alert tcp {session.attacker_ip} any -> $HOME_NET {port} '
                     f'(msg:"Honeypot: {service.upper()} brute force from '
                     f'{session.attacker_ip}"; flow:to_server; sid:{sid}; rev:1;)'
-                )
+                ),
             )
 
         command_patterns = [
@@ -189,13 +198,34 @@ class RuleGenerator:
                 continue
 
             sid = self.sid_allocator.next_sid(service)
-            rules.append(
+            add_rule(
+                pattern,
                 (
                     f'alert tcp $EXTERNAL_NET any -> $HOME_NET {port} '
                     f'(msg:"Honeypot: {service.upper()} session with {description}"; '
                     f'flow:established,to_server; content:"{_escape_snort_content(pattern)}"; '
                     f'nocase; sid:{sid}; rev:1;)'
-                )
+                ),
+            )
+
+        recon_signatures = [
+            (("uname", "cat /proc/version", "hostname"), "system reconnaissance"),
+            (("ps aux", "ps -ef", "top"), "process reconnaissance"),
+            (("netstat", "ss ", "ifconfig", "ip addr"), "network reconnaissance"),
+            (("ls ", "find "), "filesystem reconnaissance"),
+        ]
+        for patterns, description in recon_signatures:
+            if not any(pattern in combined_commands for pattern in patterns):
+                continue
+            sid = self.sid_allocator.next_sid(service)
+            add_rule(
+                description,
+                (
+                    f'alert tcp $EXTERNAL_NET any -> $HOME_NET {port} '
+                    f'(msg:"Honeypot: {service.upper()} session with {description}"; '
+                    f'flow:established,to_server; content:"{_escape_snort_content(patterns[0].strip())}"; '
+                    f'nocase; sid:{sid}; rev:1;)'
+                ),
             )
 
         return rules
@@ -255,6 +285,8 @@ def load_settings() -> dict:
 
 def create_es_client(host: str, port: int) -> Elasticsearch:
     """Create an Elasticsearch client using HTTP."""
+    if host.startswith("http://") or host.startswith("https://"):
+        return Elasticsearch(host)
     return Elasticsearch(f"http://{host}:{port}")
 
 
@@ -287,11 +319,21 @@ def fetch_session_documents(
     index_name: str,
     session_id: str | None,
     limit: int,
+    *,
+    include_active: bool = False,
 ) -> list[SessionSummary]:
     """Fetch one or more session summaries from Elasticsearch."""
-    query: dict = {"match_all": {}}
+    filters: list[dict[str, Any]] = []
     if session_id:
-        query = {"term": {"session_id": session_id}}
+        filters.append({"term": {"session_id": session_id}})
+    if not include_active:
+        filters.append({"term": {"session_active": False}})
+
+    query: dict[str, Any]
+    if filters:
+        query = {"bool": {"filter": filters}}
+    else:
+        query = {"match_all": {}}
 
     response = client.search(
         index=index_name,
@@ -352,6 +394,11 @@ def parse_args() -> argparse.Namespace:
         help="Print the generated rule record instead of writing to Elasticsearch.",
     )
     parser.add_argument(
+        "--include-active",
+        action="store_true",
+        help="Allow rule generation from still-active sessions.",
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         help="Enable debug logging.",
@@ -376,6 +423,7 @@ def main() -> int:
         index_name=settings["index_sessions"],
         session_id=args.session_id,
         limit=args.limit,
+        include_active=args.include_active,
     )
     if not sessions:
         logger.error("No session summaries found for rule generation.")
@@ -469,7 +517,7 @@ def _sanitize_identifier(value: str) -> str:
 
 
 def _utc_now() -> str:
-    return datetime.now(UTC).isoformat()
+    return datetime.now(timezone.utc).isoformat()
 
 
 if __name__ == "__main__":

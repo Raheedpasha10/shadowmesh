@@ -1,4 +1,4 @@
-"""A lightweight Gymnasium environment stub for ShadowMesh sessions."""
+"""A lightweight Gymnasium environment for offline ShadowMesh training."""
 
 from __future__ import annotations
 
@@ -9,6 +9,8 @@ import numpy as np
 
 from agent.contracts import SessionState, action_name, action_space, observation_space
 from agent.runtime import ActionDecision, ActionLogger
+
+RewardFn = callable
 
 
 class ShadowMeshSessionEnv(gym.Env):
@@ -25,10 +27,12 @@ class ShadowMeshSessionEnv(gym.Env):
         self,
         session_summaries: list[dict],
         action_logger: ActionLogger | None = None,
+        reward_fn: Any | None = None,
     ) -> None:
         super().__init__()
         self.session_summaries = session_summaries
         self.action_logger = action_logger
+        self.reward_fn = reward_fn
         self.observation_space = observation_space
         self.action_space = action_space
         self._index = -1
@@ -72,16 +76,19 @@ class ShadowMeshSessionEnv(gym.Env):
                 parameters=self._suggest_parameters(action),
                 reward=0.0,
                 episode=self._index,
+                policy_name="ppo",
             )
             decision_document = self.action_logger.log(decision)
 
         next_state = SessionState.from_session_summary(self._current_summary).to_numpy()
+        reward = 0.0
+        if self.reward_fn is not None:
+            reward = float(self.reward_fn(self._current_summary, action))
         info = {
             "session_id": self._current_summary["session_id"],
             "action_name": action_name(action),
             "action_record": decision_document,
         }
-        reward = 0.0
         terminated = True
         truncated = False
         return next_state, reward, terminated, truncated, info
@@ -89,8 +96,8 @@ class ShadowMeshSessionEnv(gym.Env):
     def _suggest_parameters(self, action: int) -> dict[str, Any]:
         if action == 2:
             return {
-                "file_path": "/home/admin/bank_credentials.txt",
-                "file_type": "credentials",
+                "file_path": "/home/admin/loot/system_audit.txt",
+                "file_type": "audit_report",
             }
         if action == 4:
             return {
