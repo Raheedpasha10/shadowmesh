@@ -1,0 +1,16 @@
+# Accept any password for the usernames used by attacker/simulate.py
+# during local validation. Rules are evaluated top-to-bottom.
+root:x:*
+admin:x:*
+user:x:*
+ubuntu:x:*
+debian:x:*
+pi:x:*
+oracle:x:*
+postgres:x:*
+deploy:x:*
+git:x:*
+manager:x:*
+support:x:*
+backup:x:*
+service:x:*

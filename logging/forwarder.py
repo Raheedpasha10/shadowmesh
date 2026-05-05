@@ -354,8 +354,9 @@ def _estimate_ttp_count(commands: list[str]) -> int:
 def tail_file(path: Path):
     """Generator that yields new lines from a file as they are written.
 
-    Seeks to the end of the file on first call, then polls for new content.
-    Handles file rotation (cowrie rotates logs daily) by re-opening if needed.
+    Seeks to the end of the file on first open, then polls for new content.
+    Re-opens the file if Cowrie recreates or rotates the log, which happens
+    when the container restarts or the log file is replaced.
 
     Args:
         path: Path to the log file to tail.
@@ -363,23 +364,49 @@ def tail_file(path: Path):
     Yields:
         New lines from the file as strings.
     """
-    # Wait for the file to exist before starting
+
+    def _open_tail(target: Path):
+        fh = target.open("r", encoding="utf-8", errors="replace")
+        fh.seek(0, 2)
+        stat = target.stat()
+        logger.info("Tailing %s from current end-of-file", target)
+        return fh, stat.st_ino
+
     while not path.exists():
         logger.info("Waiting for %s to appear...", path)
         time.sleep(5)
 
-    with path.open("r", encoding="utf-8", errors="replace") as fh:
-        # Seek to end — don't re-process historical events on restart
-        # (change to fh.seek(0) if you want to replay all existing logs)
-        fh.seek(0, 2)
-        logger.info("Tailing %s from current end-of-file", path)
+    fh, inode = _open_tail(path)
 
+    try:
         while True:
             line = fh.readline()
             if line:
                 yield line.strip()
-            else:
-                time.sleep(POLL_INTERVAL)
+                continue
+
+            try:
+                current_stat = path.stat()
+                file_replaced = current_stat.st_ino != inode
+                file_truncated = fh.tell() > current_stat.st_size
+            except FileNotFoundError:
+                file_replaced = True
+                file_truncated = False
+
+            if file_replaced or file_truncated:
+                logger.info("Detected Cowrie log rotation/recreation for %s", path)
+                fh.close()
+
+                while not path.exists():
+                    logger.info("Waiting for recreated log file %s...", path)
+                    time.sleep(POLL_INTERVAL)
+
+                fh, inode = _open_tail(path)
+                continue
+
+            time.sleep(POLL_INTERVAL)
+    finally:
+        fh.close()
 
 
 # ---------------------------------------------------------------------------

@@ -214,9 +214,10 @@ def _validate_generated_content(filename: str, content: str) -> None:
         return
 
     if filename == "id_rsa":
-        if not content.startswith("-----BEGIN RSA PRIVATE KEY-----"):
+        normalized = content.strip()
+        if not normalized.startswith("-----BEGIN RSA PRIVATE KEY-----"):
             raise ValueError("Generated private key is missing BEGIN header")
-        if not content.endswith("-----END RSA PRIVATE KEY-----"):
+        if not normalized.endswith("-----END RSA PRIVATE KEY-----"):
             raise ValueError("Generated private key is missing END footer")
         if len(lines) < 12:
             raise ValueError("Generated private key is unrealistically short")
