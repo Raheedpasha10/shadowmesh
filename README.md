@@ -42,12 +42,13 @@ ShadowMesh is under active development. At the time of writing, the repository i
 - a **session aggregation layer** for attacker behaviour analysis
 - a **multi-profile attacker simulator** for generating repeatable training and testing activity
 - an **OpenRouter-backed generative layer** that creates realistic bait artifacts for the honeypot filesystem
+- a **rule-generation module** that derives first-pass Snort and YARA artifacts from session summaries
+- an **RL contract scaffold** that defines the observation space, action space, and action logging interface
 
 Planned next milestones include:
 
-- the **RL agent** and action-execution loop
+- the **trained RL policy** and live action-execution loop
 - broader **web/deception surface expansion**
-- **automatic Snort/YARA rule generation**
 - formal **evaluation against a static baseline**
 
 ---
@@ -103,6 +104,8 @@ Planned next milestones include:
 | Visualization | Kibana | Session and attack telemetry inspection |
 | Attacker Simulation | Paramiko + python-nmap | Generates repeatable attacker sessions with multiple profiles |
 | Generative Layer | LiteLLM + OpenRouter API | Produces realistic bait files for deception and anti-fingerprinting |
+| Rule Generation | Python + Elasticsearch | Converts session summaries into Snort and YARA artifacts |
+| Agent Scaffold | Gymnasium + NumPy | Defines the RL observation/action contract and logs agent decisions |
 
 ---
 
@@ -204,6 +207,40 @@ The current AI layer uses OpenRouter through LiteLLM to generate realistic decep
 - `/home/admin/.ssh/id_rsa`
 
 These files are intended to make the environment look more natural to an attacker and reduce obvious honeypot fingerprinting patterns.
+
+---
+
+## Rule Generation
+
+The current rule-generation layer reads `honeypot-sessions` documents from Elasticsearch and produces:
+
+- a Snort `.rules` file with attacker-IP and command-pattern detections
+- a YARA `.yar` file summarizing the session's most important commands
+- an Elasticsearch record in `honeypot-generated-rules`
+
+Example usage:
+
+```bash
+# Generate rules for the latest session
+python3 rules/generator.py
+
+# Generate rules for a specific session without indexing the output
+python3 rules/generator.py --session-id <session_id> --dry-run
+```
+
+Generated rule artifacts are written to `rules/output/YYYY-MM-DD/` and kept out of Git.
+
+---
+
+## Agent Scaffold
+
+The `agent/` directory now contains the contract-aligned groundwork for the adaptive layer:
+
+- `contracts.py` defines the exact state vector and discrete action map from `data_contracts.md`
+- `runtime.py` provides an Elasticsearch-backed action logger for `honeypot-rl-actions`
+- `environment.py` exposes a lightweight Gymnasium environment stub for replaying session summaries
+
+This is intentionally a scaffold, not a trained PPO agent yet. It gives the team a stable integration surface before model training starts.
 
 ---
 

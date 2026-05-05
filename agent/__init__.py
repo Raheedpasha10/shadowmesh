@@ -1,0 +1,1 @@
+"""ShadowMesh agent scaffold."""
