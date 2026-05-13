@@ -290,6 +290,9 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 - team ownership boundaries
 - definition of done
 
+For the current dataset, PPO, and demo workflow, see
+[docs/EVIDENCE_WORKFLOW.md](docs/EVIDENCE_WORKFLOW.md).
+
 ---
 
 ## Team

@@ -14,6 +14,7 @@ __pycache__/
 *.pyd
 .Python
 .venv/
+.venv311/
 venv/
 env/
 ENV/
@@ -47,6 +48,7 @@ agent/tensorboard_logs/
 # =============================================================================
 rules/output/
 scratch/session_replays/
+scratch/mplconfig/
 
 # =============================================================================
 # GENERATED BAIT CONTENT (local AI output, not source code)

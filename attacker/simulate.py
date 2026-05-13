@@ -69,8 +69,7 @@ PROFILE_COMMANDS = {
         "ls -la /home",
         "ls -la /home/admin",
         "ls -la /home/admin/loot",
-        "cat /home/admin/loot/system_audit.txt",
-        "cat /home/admin/.aws/credentials",
+        "ls -la /home/admin/.aws",
         "ps aux",
         "netstat -tulnp",
         "cat /proc/version",
@@ -87,8 +86,7 @@ PROFILE_COMMANDS = {
         "ls -la /home",
         "ls -la /root",
         "ls -la /home/admin/loot",
-        "cat /home/admin/loot/system_audit.txt",
-        "cat /home/admin/.aws/credentials",
+        "ls -la /home/admin/.aws",
         "history",
         "cat /proc/version",
         "ifconfig",
@@ -115,6 +113,18 @@ PROFILE_MAX_ATTEMPTS = {
     "scriptkiddie": 20,
     "opportunist":  10,
     "targeted":     5,
+}
+
+
+DISCOVERY_FOLLOW_UPS = {
+    "ls -la /home/admin/loot": {
+        "needle": "system_audit.txt",
+        "command": "cat /home/admin/loot/system_audit.txt",
+    },
+    "ls -la /home/admin/.aws": {
+        "needle": "credentials",
+        "command": "cat /home/admin/.aws/credentials",
+    },
 }
 
 
@@ -263,9 +273,10 @@ def run_post_exploitation(
     Returns:
         Number of commands successfully executed.
     """
-    commands = PROFILE_COMMANDS[profile]
+    commands = list(PROFILE_COMMANDS[profile])
     min_delay, max_delay = PROFILE_DELAY[profile]
     executed = 0
+    queued_follow_ups: set[str] = set()
 
     logger.info(
         "[%s] Starting post-exploitation — %d commands queued",
@@ -296,7 +307,9 @@ def run_post_exploitation(
         if POST_LOGIN_INITIAL_DELAY_SECONDS > 0:
             time.sleep(POST_LOGIN_INITIAL_DELAY_SECONDS)
 
-        for cmd in commands:
+        command_index = 0
+        while command_index < len(commands):
+            cmd = commands[command_index]
             try:
                 shell.send(cmd + "\n")
                 time.sleep(random.uniform(min_delay, max_delay))
@@ -310,9 +323,18 @@ def run_post_exploitation(
                     "[%s] CMD: %s → %d chars output", profile, cmd, len(output)
                 )
                 executed += 1
+                _queue_follow_up_command(
+                    commands,
+                    queued_follow_ups,
+                    command_index,
+                    cmd,
+                    output,
+                )
 
             except Exception as exc:
                 logger.warning("[%s] Command failed (%s): %s", profile, cmd, exc)
+
+            command_index += 1
 
         shell.close()
         client.close()
@@ -322,6 +344,29 @@ def run_post_exploitation(
 
     logger.info("[%s] Post-exploitation done — %d commands executed", profile, executed)
     return executed
+
+
+def _queue_follow_up_command(
+    commands: list[str],
+    queued_follow_ups: set[str],
+    command_index: int,
+    command: str,
+    output: str,
+) -> None:
+    """Append a bait-access command only when the file was actually discovered."""
+    follow_up = DISCOVERY_FOLLOW_UPS.get(command)
+    if follow_up is None:
+        return
+
+    if follow_up["needle"] not in output:
+        return
+
+    next_command = follow_up["command"]
+    if next_command in queued_follow_ups:
+        return
+
+    commands.insert(command_index + 1, next_command)
+    queued_follow_ups.add(next_command)
 
 
 # ---------------------------------------------------------------------------

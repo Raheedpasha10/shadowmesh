@@ -14,6 +14,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--output", default="scratch/session_replays/latest_sessions.json")
     parser.add_argument("--limit", type=int, default=50)
     parser.add_argument("--include-active", action="store_true")
+    parser.add_argument("--since", help="ISO-8601 lower bound for @timestamp")
+    parser.add_argument("--until", help="ISO-8601 upper bound for @timestamp")
+    parser.add_argument(
+        "--min-command-count",
+        type=int,
+        default=1,
+        help="Only export sessions with at least this many commands",
+    )
+    parser.add_argument(
+        "--login-success-only",
+        action="store_true",
+        help="Only export sessions that reached a successful login",
+    )
     return parser.parse_args()
 
 
@@ -24,7 +37,12 @@ def main() -> int:
     sessions = fetch_session_summaries(
         client,
         settings["sessions_index"],
-        active_only=not args.include_active,
+        active_only=False,
+        closed_only=not args.include_active,
+        since=args.since,
+        until=args.until,
+        min_command_count=args.min_command_count,
+        login_success_only=args.login_success_only,
         limit=args.limit,
     )
     sessions = sorted(
@@ -35,7 +53,7 @@ def main() -> int:
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(sessions, indent=2) + "\n", encoding="utf-8")
-    print(output_path)
+    print(f"{output_path} ({len(sessions)} sessions)")
     return 0
 
 

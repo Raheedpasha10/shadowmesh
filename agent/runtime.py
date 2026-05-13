@@ -138,6 +138,11 @@ def fetch_session_summaries(
     *,
     session_id: str | None = None,
     active_only: bool = False,
+    closed_only: bool = False,
+    since: str | None = None,
+    until: str | None = None,
+    min_command_count: int | None = None,
+    login_success_only: bool = False,
     limit: int = 20,
 ) -> list[dict[str, Any]]:
     """Fetch recent session summaries for rule generation or agent decisions."""
@@ -146,6 +151,19 @@ def fetch_session_summaries(
         filters.append({"term": {"session_id": session_id}})
     if active_only:
         filters.append({"term": {"session_active": True}})
+    elif closed_only:
+        filters.append({"term": {"session_active": False}})
+    if login_success_only:
+        filters.append({"term": {"login_success": True}})
+    if min_command_count is not None:
+        filters.append({"range": {"command_count": {"gte": min_command_count}}})
+    if since or until:
+        timestamp_range: dict[str, Any] = {}
+        if since:
+            timestamp_range["gte"] = since
+        if until:
+            timestamp_range["lte"] = until
+        filters.append({"range": {"@timestamp": timestamp_range}})
 
     query: dict[str, Any]
     if filters:

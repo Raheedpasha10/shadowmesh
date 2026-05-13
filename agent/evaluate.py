@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
+import sys
 from pathlib import Path
 
 
@@ -14,11 +16,22 @@ METRICS = [
     "ttp_count",
 ]
 
+BAIT_MARKERS = (
+    "/home/admin/loot/system_audit.txt",
+    "/home/admin/.aws/credentials",
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Compare two ShadowMesh datasets")
     parser.add_argument("--baseline", required=True)
     parser.add_argument("--adaptive", required=True)
+    parser.add_argument(
+        "--format",
+        choices=("markdown", "csv"),
+        default="markdown",
+        help="Output format for the comparison table",
+    )
     return parser.parse_args()
 
 
@@ -32,29 +45,79 @@ def _average(items: list[dict], key: str) -> float:
     return sum(float(item.get(key, 0.0) or 0.0) for item in items) / len(items)
 
 
+def _command_list(item: dict) -> list[str]:
+    commands = item.get("commands", []) or []
+    return [str(command) for command in commands if command]
+
+
+def _bait_access_sessions(items: list[dict]) -> int:
+    total = 0
+    for item in items:
+        joined_commands = "\n".join(_command_list(item))
+        if any(marker in joined_commands for marker in BAIT_MARKERS):
+            total += 1
+    return total
+
+
+def _payload_attempts(items: list[dict]) -> int:
+    return sum(len(item.get("files_downloaded", []) or []) for item in items)
+
+
+def _metric_rows(baseline: list[dict], adaptive: list[dict]) -> list[tuple[str, float, float]]:
+    rows: list[tuple[str, float, float]] = []
+    for metric in METRICS:
+        rows.append((metric, _average(baseline, metric), _average(adaptive, metric)))
+    rows.append(
+        (
+            "bait_access_sessions",
+            float(_bait_access_sessions(baseline)),
+            float(_bait_access_sessions(adaptive)),
+        )
+    )
+    rows.append(
+        (
+            "payload_attempts",
+            float(_payload_attempts(baseline)),
+            float(_payload_attempts(adaptive)),
+        )
+    )
+    return rows
+
+
+def _print_markdown(rows: list[tuple[str, float, float]]) -> None:
+    print("| metric | baseline | adaptive | delta |")
+    print("|---|---:|---:|---:|")
+    for metric, base_value, adaptive_value in rows:
+        delta = adaptive_value - base_value
+        print(
+            f"| {metric} | {base_value:.2f} | {adaptive_value:.2f} | "
+            f"{delta:+.2f} |"
+        )
+
+
+def _print_csv(rows: list[tuple[str, float, float]]) -> None:
+    writer = csv.writer(sys.stdout)
+    writer.writerow(["metric", "baseline", "adaptive", "delta"])
+    for metric, base_value, adaptive_value in rows:
+        writer.writerow(
+            [
+                metric,
+                f"{base_value:.2f}",
+                f"{adaptive_value:.2f}",
+                f"{adaptive_value - base_value:+.2f}",
+            ]
+        )
+
+
 def main() -> int:
     args = parse_args()
     baseline = _load(args.baseline)
     adaptive = _load(args.adaptive)
-
-    print("| metric | baseline | adaptive | delta |")
-    print("|---|---:|---:|---:|")
-    for metric in METRICS:
-        base_value = _average(baseline, metric)
-        adaptive_value = _average(adaptive, metric)
-        print(
-            f"| {metric} | {base_value:.2f} | {adaptive_value:.2f} | "
-            f"{adaptive_value - base_value:+.2f} |"
-        )
-
-    base_payloads = sum(len(item.get("files_downloaded", []) or []) for item in baseline)
-    adaptive_payloads = sum(
-        len(item.get("files_downloaded", []) or []) for item in adaptive
-    )
-    print(
-        f"| payload_attempts | {base_payloads} | {adaptive_payloads} | "
-        f"{adaptive_payloads - base_payloads:+d} |"
-    )
+    rows = _metric_rows(baseline, adaptive)
+    if args.format == "csv":
+        _print_csv(rows)
+    else:
+        _print_markdown(rows)
     return 0
 
 
