@@ -123,6 +123,10 @@ def load_settings() -> dict[str, Any]:
         ),
         "action_loot_dir": os.getenv("ACTION_LOOT_DIR", "/actions/loot"),
         "action_aws_dir": os.getenv("ACTION_AWS_DIR", "/actions/aws"),
+        "action_generated_dir": os.getenv(
+            "ACTION_GENERATED_DIR",
+            "/actions/generated",
+        ),
         "ppo_model_dir": os.getenv("PPO_MODEL_DIR", "agent/models"),
     }
 

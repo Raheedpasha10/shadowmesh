@@ -166,7 +166,7 @@ services:
       - ES_INDEX_SESSIONS=honeypot-sessions
       - ES_INDEX_ACTIONS=honeypot-rl-actions
       - AGENT_POLICY=show_fake_credentials_on_login_success
-      - AGENT_POLL_INTERVAL_SECONDS=1.0
+      - AGENT_POLL_INTERVAL_SECONDS=0.2
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -188,12 +188,14 @@ services:
     environment:
       - ES_HOST=http://172.18.0.20:9200
       - ES_INDEX_ACTIONS=honeypot-rl-actions
-      - ACTION_EXECUTOR_POLL_INTERVAL_SECONDS=1.0
+      - ACTION_EXECUTOR_POLL_INTERVAL_SECONDS=0.2
       - ACTION_LOOT_DIR=/actions/loot
       - ACTION_AWS_DIR=/actions/aws
+      - ACTION_GENERATED_DIR=/actions/generated
     volumes:
       - cowrie-action-loot:/actions/loot
       - cowrie-action-aws:/actions/aws
+      - ../generative/cache:/actions/generated
     depends_on:
       elasticsearch:
         condition: service_healthy

@@ -34,8 +34,10 @@ def main() -> int:
     client = create_es_client(settings["es_url"])
     loot_dir = Path(settings["action_loot_dir"])
     aws_dir = Path(settings["action_aws_dir"])
+    generated_dir = Path(settings["action_generated_dir"])
     loot_dir.mkdir(parents=True, exist_ok=True)
     aws_dir.mkdir(parents=True, exist_ok=True)
+    generated_dir.mkdir(parents=True, exist_ok=True)
 
     seen_ids: set[str] = set()
 
@@ -50,7 +52,12 @@ def main() -> int:
             action_id = action["_id"]
             if action_id in seen_ids:
                 continue
-            _apply_action(action, loot_dir=loot_dir, aws_dir=aws_dir)
+            _apply_action(
+                action,
+                loot_dir=loot_dir,
+                aws_dir=aws_dir,
+                generated_dir=generated_dir,
+            )
             seen_ids.add(action_id)
 
         if args.once:
@@ -59,7 +66,13 @@ def main() -> int:
         time.sleep(settings["action_executor_poll_interval"])
 
 
-def _apply_action(action: dict, *, loot_dir: Path, aws_dir: Path) -> None:
+def _apply_action(
+    action: dict,
+    *,
+    loot_dir: Path,
+    aws_dir: Path,
+    generated_dir: Path,
+) -> None:
     action_name = action["action_name"]
     params = action.get("parameters", {})
     file_path = params.get("file_path", "")
@@ -72,6 +85,10 @@ def _apply_action(action: dict, *, loot_dir: Path, aws_dir: Path) -> None:
         return
 
     if action_name == "show_fake_credentials":
+        env_target = generated_dir / ".env"
+        env_target.write_text(_adaptive_env_credentials(session_id), encoding="utf-8")
+        logger.info("Materialized adaptive env credentials at %s", env_target)
+
         target = aws_dir / "credentials"
         target.write_text(_aws_credentials(session_id), encoding="utf-8")
         logger.info("Materialized fake credentials at %s", target)
@@ -108,6 +125,22 @@ def _aws_credentials(session_id: str) -> str:
         aws_secret_access_key = 0nlyF4k3ButL00ksRealForShadowMeshDemo2026
         region = us-east-1
         session_reference = {session_id}
+        """
+    )
+
+
+def _adaptive_env_credentials(session_id: str) -> str:
+    return textwrap.dedent(
+        f"""\
+        APP_ENV=production
+        DB_HOST=10.10.24.12
+        DB_NAME=novapay
+        DB_USER=novapay_app
+        DB_PASSWORD=N0vaPay-ShadowMesh-2026!
+        AWS_ACCESS_KEY_ID=AKIA7NOVAPAYDEMO2026
+        AWS_SECRET_ACCESS_KEY=0nlyF4k3ButL00ksRealForShadowMeshDemo2026
+        rotation_marker=shadowmesh_live_credentials
+        session_reference={session_id}
         """
     )
 

