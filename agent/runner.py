@@ -30,6 +30,19 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _session_scope(policy: object, include_closed: bool) -> tuple[bool, bool]:
+    """Return the active_only/closed_only flags for session polling."""
+
+    if include_closed:
+        return False, False
+
+    wants_active_sessions = getattr(policy, "consumes_active_sessions", True)
+    wants_closed_sessions = getattr(policy, "consumes_closed_sessions", False)
+    active_only = wants_active_sessions and not wants_closed_sessions
+    closed_only = wants_closed_sessions and not wants_active_sessions
+    return active_only, closed_only
+
+
 def main() -> int:
     args = parse_args()
     logging.basicConfig(
@@ -45,11 +58,13 @@ def main() -> int:
     logger.info("Agent runner starting with policy=%s", policy.name)
 
     while True:
+        active_only, closed_only = _session_scope(policy, args.include_closed)
         sessions = fetch_session_summaries(
             client,
             settings["sessions_index"],
             session_id=args.session_id,
-            active_only=not args.include_closed,
+            active_only=active_only,
+            closed_only=closed_only,
             limit=args.limit,
         )
         logger.debug("Fetched %d candidate sessions", len(sessions))

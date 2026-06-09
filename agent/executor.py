@@ -40,6 +40,7 @@ def main() -> int:
     generated_dir.mkdir(parents=True, exist_ok=True)
 
     seen_ids: set[str] = set()
+    started_at = datetime.now(timezone.utc)
 
     while True:
         actions = fetch_recent_actions(
@@ -50,7 +51,7 @@ def main() -> int:
         )
         for action in reversed(actions):
             action_id = action["_id"]
-            if action_id in seen_ids:
+            if action_id in seen_ids or not _is_fresh_action(action, started_at):
                 continue
             _apply_action(
                 action,
@@ -64,6 +65,28 @@ def main() -> int:
             return 0
 
         time.sleep(settings["action_executor_poll_interval"])
+
+
+def _is_fresh_action(action: dict, started_at: datetime) -> bool:
+    """Process only actions created after the current executor started.
+
+    Without this guard, a restart replays old Elasticsearch action documents
+    and pollutes the bait state before a fresh validation run even begins.
+    """
+
+    raw_timestamp = action.get("@timestamp")
+    if not raw_timestamp:
+        return False
+
+    try:
+        action_time = datetime.fromisoformat(
+            str(raw_timestamp).replace("Z", "+00:00")
+        )
+    except ValueError:
+        logger.warning("Skipping action with invalid timestamp: %s", raw_timestamp)
+        return False
+
+    return action_time >= started_at
 
 
 def _apply_action(
@@ -88,6 +111,10 @@ def _apply_action(
         env_target = generated_dir / ".env"
         env_target.write_text(_adaptive_env_credentials(session_id), encoding="utf-8")
         logger.info("Materialized adaptive env credentials at %s", env_target)
+
+        loot_target = loot_dir / "system_audit.txt"
+        loot_target.write_text(_audit_report(session_id), encoding="utf-8")
+        logger.info("Materialized adaptive audit report at %s", loot_target)
 
         target = aws_dir / "credentials"
         target.write_text(_aws_credentials(session_id), encoding="utf-8")

@@ -22,6 +22,7 @@ import random
 import socket
 import time
 from pathlib import Path
+from typing import Protocol
 
 import nmap
 import paramiko
@@ -134,6 +135,14 @@ DISCOVERY_FOLLOW_UPS = {
         "command": "grep AWS /opt/novapay/.env",
     },
 }
+
+
+class InteractiveShell(Protocol):
+    def recv_ready(self) -> bool: ...
+
+    def recv(self, size: int) -> bytes: ...
+
+    def send(self, data: str) -> int | None: ...
 
 
 # ---------------------------------------------------------------------------
@@ -309,8 +318,7 @@ def run_post_exploitation(
         time.sleep(1)  # wait for shell prompt
 
         # Flush the initial banner/prompt
-        if shell.recv_ready():
-            shell.recv(4096)
+        _drain_shell_output(shell)
 
         if POST_LOGIN_INITIAL_DELAY_SECONDS > 0:
             time.sleep(POST_LOGIN_INITIAL_DELAY_SECONDS)
@@ -322,10 +330,8 @@ def run_post_exploitation(
                 shell.send(cmd + "\n")
                 time.sleep(random.uniform(min_delay, max_delay))
 
-                # Read response if available
-                output = ""
-                if shell.recv_ready():
-                    output = shell.recv(4096).decode(errors="replace")
+                # Read enough of the response to capture bait markers reliably.
+                output = _drain_shell_output(shell)
 
                 logger.info(
                     "[%s] CMD: %s → %d chars output", profile, cmd, len(output)
@@ -352,6 +358,37 @@ def run_post_exploitation(
 
     logger.info("[%s] Post-exploitation done — %d commands executed", profile, executed)
     return executed
+
+
+def _drain_shell_output(
+    shell: InteractiveShell,
+    *,
+    settle_seconds: float = 0.15,
+    max_wait_seconds: float = 1.5,
+) -> str:
+    """Read command output until the channel goes quiet briefly.
+
+    Cowrie sometimes emits command output in multiple chunks. A single `recv()`
+    can miss the filenames or markers that drive our adaptive follow-up logic,
+    so we keep reading until the stream settles.
+    """
+
+    chunks: list[str] = []
+    deadline = time.monotonic() + max_wait_seconds
+    last_data_at = time.monotonic()
+
+    while time.monotonic() < deadline:
+        if shell.recv_ready():
+            chunks.append(shell.recv(4096).decode(errors="replace"))
+            last_data_at = time.monotonic()
+            continue
+
+        if chunks and (time.monotonic() - last_data_at) >= settle_seconds:
+            break
+
+        time.sleep(0.05)
+
+    return "".join(chunks)
 
 
 def _queue_follow_up_command(

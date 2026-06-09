@@ -255,13 +255,13 @@ This is intentionally a scaffold, not a trained PPO agent yet. It gives the team
 The current live loop is deliberately small and SSH-first:
 
 1. Cowrie events are normalized into Elasticsearch.
-2. `honeypot-sessions` is updated while the session is still active.
-3. `agent-runner` applies a baseline policy such as `show_fake_credentials_on_login_success`.
+2. `honeypot-sessions` is updated while the session is still active and again when it closes.
+3. `agent-runner` applies a baseline policy such as `show_fake_credentials_after_successful_session`.
 4. The resulting action is logged into `honeypot-rl-actions`.
-5. `action-executor` materializes the corresponding bait file into Cowrie's honeyfs.
-6. The attacker can later discover that new file during the same SSH session.
+5. `action-executor` materializes the corresponding bait files into Cowrie's honeyfs.
+6. The next attacker session can discover those adaptive files in a deterministic way.
 
-This gives the project a real adaptive control path before PPO training is introduced.
+This gives the project a real adaptive control path before PPO training is introduced, while staying honest about the current Cowrie integration limits.
 
 ---
 

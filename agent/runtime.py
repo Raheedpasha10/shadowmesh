@@ -113,7 +113,7 @@ def load_settings() -> dict[str, Any]:
         "rules_index": os.getenv("ES_INDEX_RULES", "honeypot-generated-rules"),
         "agent_policy": os.getenv(
             "AGENT_POLICY",
-            "show_fake_credentials_on_login_success",
+            "show_fake_credentials_after_successful_session",
         ),
         "agent_poll_interval": float(
             os.getenv("AGENT_POLL_INTERVAL_SECONDS", "1.0")

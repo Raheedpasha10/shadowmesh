@@ -4,6 +4,7 @@ import pytest
 from agent.contracts import SessionState, action_name
 from agent.policies import (
     AlwaysShowFakeFilePolicy,
+    ShowFakeCredentialsAfterSuccessfulSessionPolicy,
     ShowFakeCredentialsOnLoginSuccessPolicy,
 )
 from agent.runtime import ActionDecision
@@ -60,6 +61,21 @@ def test_fake_credentials_policy_requires_active_successful_session():
         set(),
         episode=2,
     )
+    assert no_decision is None
+
+
+def test_next_session_credentials_policy_requires_closed_successful_session():
+    policy = ShowFakeCredentialsAfterSuccessfulSessionPolicy()
+    decision = policy.decide(
+        sample_session_summary(session_active=False),
+        set(),
+        episode=3,
+    )
+    assert decision is not None
+    assert decision.action_id == 4
+    assert decision.parameters["activation_scope"] == "next_session"
+
+    no_decision = policy.decide(sample_session_summary(session_active=True), set(), episode=3)
     assert no_decision is None
 
 

@@ -22,7 +22,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--policy",
-        default="show_fake_credentials_on_login_success",
+        default="show_fake_credentials_after_successful_session",
         help="Built-in deterministic policy to inspect",
     )
     parser.add_argument("--limit", type=int, default=10)
@@ -37,7 +37,7 @@ def main() -> int:
     for session in sessions[: args.limit]:
         state = SessionState.from_session_summary(session).to_numpy().tolist()
         replay_session = dict(session)
-        replay_session["session_active"] = replay_session.get("login_success", False)
+        replay_session.setdefault("session_active", False)
         decision = policy.decide(replay_session, existing_actions=set())
         action_id = decision.action_id if decision is not None else 0
         reward = heuristic_reward(session, action_id)

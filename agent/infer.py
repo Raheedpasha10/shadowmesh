@@ -28,6 +28,7 @@ def parse_args() -> argparse.Namespace:
         choices=(
             "do_nothing",
             "show_fake_credentials_on_login_success",
+            "show_fake_credentials_after_successful_session",
             "ppo",
         ),
         default="ppo",
@@ -44,7 +45,7 @@ def _run_builtin_policy(sessions: list[dict], policy_name: str, limit: int) -> i
     policy = get_policy(policy_name)
     for session in sessions[:limit]:
         replay_session = dict(session)
-        replay_session["session_active"] = replay_session.get("login_success", False)
+        replay_session.setdefault("session_active", False)
         decision = policy.decide(replay_session, existing_actions=set())
         action_id = decision.action_id if decision is not None else 0
         reward = heuristic_reward(session, action_id)

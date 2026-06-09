@@ -13,10 +13,10 @@ Use the local adaptive prototype as the reference implementation:
 - deterministic baseline policy via `agent-runner`
 - first adaptive actions materialized by `action-executor`
 
-Keep the live demo policy on:
+Keep the evidence and evaluation policy on:
 
 ```bash
-AGENT_POLICY=show_fake_credentials_on_login_success
+AGENT_POLICY=show_fake_credentials_after_successful_session
 ```
 
 ## 2. Canonical Dataset Collection Rule
@@ -28,12 +28,19 @@ count:
   - run the stack without `agent-runner` and `action-executor`
 - `adaptive_sessions.json`
   - run the stack with both services enabled
+  - discard the first successful session as the adaptation seed/warm-up
 
 Recommended attacker profile for both datasets:
 
 ```bash
-python simulate.py --profile opportunist --sessions 25 --delay 1
+python simulate.py --profile opportunist --sessions 25 --delay 2
 ```
+
+Why the larger delay matters:
+
+- the forwarder must finish closing and indexing the seed session
+- `agent-runner` must observe the closed-session summary
+- `action-executor` must materialize the next-session bait before the next login
 
 Only export:
 
@@ -68,7 +75,7 @@ Inspect deterministic policy output against replay data:
 ```bash
 python -m agent.analyze_rewards \
   --dataset scratch/session_replays/adaptive_sessions.json \
-  --policy show_fake_credentials_on_login_success \
+  --policy show_fake_credentials_after_successful_session \
   --limit 10
 ```
 
@@ -111,7 +118,7 @@ python -m agent.infer \
 
 python -m agent.infer \
   --dataset scratch/session_replays/adaptive_sessions.json \
-  --policy show_fake_credentials_on_login_success \
+  --policy show_fake_credentials_after_successful_session \
   --limit 10
 
 python -m agent.infer \
@@ -146,19 +153,20 @@ Metrics currently reported:
 Use one deterministic demo path:
 
 1. Start the stack.
-2. Confirm `agent-runner` is using `show_fake_credentials_on_login_success`.
-3. Run the attacker simulator with `opportunist`.
-4. Show in Kibana:
-   - active session appears
-   - `show_fake_credentials` action is logged
-   - attacker later accesses:
+2. Confirm `agent-runner` is using `show_fake_credentials_after_successful_session`.
+3. Run one warm-up `opportunist` session that reaches login success.
+4. Verify a `show_fake_credentials` action is logged for that closed session.
+5. Run the next `opportunist` session.
+6. Show in Kibana:
+   - the new session accesses adaptive bait such as:
      - `/home/admin/loot/system_audit.txt`
      - `/home/admin/.aws/credentials`
-5. Show generated rules for that session in `honeypot-generated-rules`.
+     - `grep AWS /opt/novapay/.env`
+7. Show generated rules for the follow-up session in `honeypot-generated-rules`.
 
 This keeps the story simple:
 
-`attacker login -> adaptive action -> bait discovery -> rules generated`
+`seed session closes -> adaptive action materializes bait -> next session discovers bait -> rules generated`
 
 ## 9. Current Limitation
 
@@ -172,7 +180,7 @@ What this means today:
 - adaptive decisions are visible in `honeypot-rl-actions`
 - adaptive bait files are written to the shared action volumes
 - offline PPO and replay evaluation work correctly
-- same-session attacker command differences are still limited
+- the most reliable measurable effect is currently **next-session adaptation**
 
 Treat this as a known engineering limitation of the current Cowrie integration,
 not as missing evidence for the rest of the adaptive pipeline.

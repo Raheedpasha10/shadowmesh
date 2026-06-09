@@ -12,6 +12,8 @@ class Policy(Protocol):
     """A baseline policy that may emit one action for a session."""
 
     name: str
+    consumes_active_sessions: bool
+    consumes_closed_sessions: bool
 
     def decide(
         self,
@@ -24,6 +26,8 @@ class Policy(Protocol):
 @dataclass(slots=True)
 class DoNothingPolicy:
     name: str = "do_nothing"
+    consumes_active_sessions: bool = True
+    consumes_closed_sessions: bool = False
 
     def decide(
         self,
@@ -44,6 +48,8 @@ class DoNothingPolicy:
 @dataclass(slots=True)
 class AlwaysShowFakeFilePolicy:
     name: str = "always_show_fake_file"
+    consumes_active_sessions: bool = True
+    consumes_closed_sessions: bool = False
 
     def decide(
         self,
@@ -70,6 +76,8 @@ class AlwaysShowFakeFilePolicy:
 @dataclass(slots=True)
 class ShowFakeCredentialsOnLoginSuccessPolicy:
     name: str = "show_fake_credentials_on_login_success"
+    consumes_active_sessions: bool = True
+    consumes_closed_sessions: bool = False
 
     def decide(
         self,
@@ -89,6 +97,48 @@ class ShowFakeCredentialsOnLoginSuccessPolicy:
             parameters={
                 "file_path": "/home/admin/.aws/credentials",
                 "file_type": "cloud_credentials",
+                "activation_scope": "live_session",
+            },
+            episode=episode,
+            policy_name=self.name,
+        )
+
+
+@dataclass(slots=True)
+class ShowFakeCredentialsAfterSuccessfulSessionPolicy:
+    """Seed higher-value bait for the next attacker session.
+
+    Cowrie does not reliably surface newly materialized bait inside the same
+    live session. This policy reacts after a successful session has closed and
+    prepares richer artifacts for the following session, which is much more
+    deterministic and measurable.
+    """
+
+    name: str = "show_fake_credentials_after_successful_session"
+    consumes_active_sessions: bool = False
+    consumes_closed_sessions: bool = True
+
+    def decide(
+        self,
+        session_summary: dict,
+        existing_actions: set[str],
+        episode: int = 0,
+    ) -> ActionDecision | None:
+        if session_summary.get("session_active", False):
+            return None
+        if not session_summary.get("login_success"):
+            return None
+        if session_summary.get("command_count", 0) <= 0:
+            return None
+        if "show_fake_credentials" in existing_actions:
+            return None
+        return ActionDecision(
+            session_id=session_summary["session_id"],
+            action_id=4,
+            parameters={
+                "file_path": "/home/admin/.aws/credentials",
+                "file_type": "cloud_credentials",
+                "activation_scope": "next_session",
             },
             episode=episode,
             policy_name=self.name,
@@ -99,6 +149,9 @@ POLICIES: dict[str, Policy] = {
     "do_nothing": DoNothingPolicy(),
     "always_show_fake_file": AlwaysShowFakeFilePolicy(),
     "show_fake_credentials_on_login_success": ShowFakeCredentialsOnLoginSuccessPolicy(),
+    "show_fake_credentials_after_successful_session": (
+        ShowFakeCredentialsAfterSuccessfulSessionPolicy()
+    ),
 }
 
 
