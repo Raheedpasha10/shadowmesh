@@ -16,8 +16,8 @@ def _session(**overrides):
 
 def test_bait_access_sessions_detects_adaptive_loot_paths():
     sessions = [
-        _session(commands=["grep AWS /opt/novapay/.env"]),
-        _session(commands=["cat /home/admin/.aws/credentials", "ls /var/www"]),
+        _session(commands=["grep -E 'backupsvc|cloudsync' /etc/passwd"]),
+        _session(commands=["grep -E 'backupsvc|cloudsync' /etc/passwd", "ls -la /etc"]),
         _session(commands=["cat /home/admin/loot/system_audit.txt"]),
         _session(commands=["cat /etc/passwd"]),
     ]

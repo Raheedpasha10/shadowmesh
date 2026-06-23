@@ -28,39 +28,39 @@ class FakeShell:
 
 
 def test_queue_follow_up_command_only_adds_bait_read_when_discovered():
-    commands = ["cat /opt/novapay/.env", "ps aux"]
+    commands = ["cat /etc/passwd", "ps aux"]
     queued_follow_ups: set[str] = set()
 
     _queue_follow_up_command(
         commands,
         queued_follow_ups,
         0,
-        "cat /opt/novapay/.env",
-        "AWS_ACCESS_KEY_ID=AKIA...\nrotation_marker=shadowmesh_live_credentials\n",
+        "cat /etc/passwd",
+        "root:x:0:0:root:/root:/bin/bash\nbackupsvc:x:1004:1004:Backup Service:/var/backups:/bin/bash\n",
     )
 
-    assert commands[1] == "grep AWS /opt/novapay/.env"
-    assert "grep AWS /opt/novapay/.env" in queued_follow_ups
+    assert commands[1] == "grep -E 'backupsvc|cloudsync' /etc/passwd"
+    assert "grep -E 'backupsvc|cloudsync' /etc/passwd" in queued_follow_ups
 
 
 def test_queue_follow_up_command_ignores_missing_bait():
-    commands = ["cat /opt/novapay/.env", "ps aux"]
+    commands = ["cat /etc/passwd", "ps aux"]
     queued_follow_ups: set[str] = set()
 
     _queue_follow_up_command(
         commands,
         queued_follow_ups,
         0,
-        "cat /opt/novapay/.env",
-        "APP_ENV=production\nDB_HOST=10.10.24.12\n",
+        "cat /etc/passwd",
+        "root:x:0:0:root:/root:/bin/bash\nmysql:x:105:105:MySQL Server:/var/lib/mysql:/usr/sbin/nologin\n",
     )
 
-    assert commands == ["cat /opt/novapay/.env", "ps aux"]
+    assert commands == ["cat /etc/passwd", "ps aux"]
 
 
 def test_drain_shell_output_collects_multiple_chunks():
-    shell = FakeShell([b"rotation_marker=", b"shadowmesh_live_credentials\n$ "])
+    shell = FakeShell([b"backupsvc:x:1004:", b"1004:Backup Service:/var/backups:/bin/bash\n$ "])
 
     output = _drain_shell_output(shell, settle_seconds=0.0, max_wait_seconds=0.1)
 
-    assert "rotation_marker=shadowmesh_live_credentials" in output
+    assert "backupsvc:x:1004:1004:Backup Service" in output

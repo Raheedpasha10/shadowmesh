@@ -20,6 +20,8 @@ BAIT_MARKERS = (
     "cat /home/admin/loot/system_audit.txt",
     "cat /home/admin/.aws/credentials",
     "grep AWS /opt/novapay/.env",
+    "grep -E 'backupsvc|cloudsync' /etc/passwd",
+    "grep -E 'backupsvc|cloudsync' /etc/shadow",
 )
 
 

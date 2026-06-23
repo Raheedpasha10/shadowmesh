@@ -101,8 +101,8 @@ class ShadowMeshSessionEnv(gym.Env):
             }
         if action == 4:
             return {
-                "file_path": "/home/admin/.aws/credentials",
-                "file_type": "cloud_credentials",
+                "file_path": "/etc/passwd",
+                "file_type": "user_database",
             }
         if action == 5:
             return {

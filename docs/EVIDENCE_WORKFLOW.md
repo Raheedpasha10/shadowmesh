@@ -159,9 +159,8 @@ Use one deterministic demo path:
 5. Run the next `opportunist` session.
 6. Show in Kibana:
    - the new session accesses adaptive bait such as:
-     - `/home/admin/loot/system_audit.txt`
-     - `/home/admin/.aws/credentials`
-     - `grep AWS /opt/novapay/.env`
+     - `cat /etc/passwd`
+     - `grep -E 'backupsvc|cloudsync' /etc/passwd`
 7. Show generated rules for the follow-up session in `honeypot-generated-rules`.
 
 This keeps the story simple:

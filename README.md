@@ -203,10 +203,10 @@ The current AI layer uses OpenRouter through LiteLLM to generate realistic decep
 
 - `/etc/passwd`
 - `/etc/shadow`
-- `/home/admin/.bash_history`
+- `/root/.bash_history`
 - `/var/www/html/config.php`
 - `/opt/novapay/.env`
-- `/home/admin/.ssh/id_rsa`
+- `/root/.ssh/id_rsa`
 
 These files are intended to make the environment look more natural to an attacker and reduce obvious honeypot fingerprinting patterns.
 

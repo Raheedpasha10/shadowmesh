@@ -95,8 +95,8 @@ class ShowFakeCredentialsOnLoginSuccessPolicy:
             session_id=session_summary["session_id"],
             action_id=4,
             parameters={
-                "file_path": "/home/admin/.aws/credentials",
-                "file_type": "cloud_credentials",
+                "file_path": "/etc/passwd",
+                "file_type": "user_database",
                 "activation_scope": "live_session",
             },
             episode=episode,
@@ -136,8 +136,8 @@ class ShowFakeCredentialsAfterSuccessfulSessionPolicy:
             session_id=session_summary["session_id"],
             action_id=4,
             parameters={
-                "file_path": "/home/admin/.aws/credentials",
-                "file_type": "cloud_credentials",
+                "file_path": "/etc/passwd",
+                "file_type": "user_database",
                 "activation_scope": "next_session",
             },
             episode=episode,

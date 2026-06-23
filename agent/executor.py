@@ -108,9 +108,27 @@ def _apply_action(
         return
 
     if action_name == "show_fake_credentials":
+        passwd_target = generated_dir / "passwd"
+        passwd_target.write_text(
+            _adaptive_passwd(passwd_target.read_text(encoding="utf-8"), session_id),
+            encoding="utf-8",
+        )
+        logger.info("Materialized adaptive passwd entries at %s", passwd_target)
+
+        shadow_target = generated_dir / "shadow"
+        shadow_target.write_text(
+            _adaptive_shadow(shadow_target.read_text(encoding="utf-8"), session_id),
+            encoding="utf-8",
+        )
+        logger.info("Materialized adaptive shadow entries at %s", shadow_target)
+
         env_target = generated_dir / ".env"
         env_target.write_text(_adaptive_env_credentials(session_id), encoding="utf-8")
         logger.info("Materialized adaptive env credentials at %s", env_target)
+
+        history_target = generated_dir / "bash_history.txt"
+        history_target.write_text(_adaptive_bash_history(session_id), encoding="utf-8")
+        logger.info("Materialized adaptive bash history at %s", history_target)
 
         loot_target = loot_dir / "system_audit.txt"
         loot_target.write_text(_audit_report(session_id), encoding="utf-8")
@@ -169,6 +187,57 @@ def _adaptive_env_credentials(session_id: str) -> str:
         rotation_marker=shadowmesh_live_credentials
         session_reference={session_id}
         """
+    )
+
+
+def _adaptive_bash_history(session_id: str) -> str:
+    return textwrap.dedent(
+        f"""\
+        sudo su -
+        cd /srv/novapay
+        vim .env
+        export AWS_ACCESS_KEY_ID=AKIA7NOVAPAYDEMO2026
+        export AWS_SECRET_ACCESS_KEY=0nlyF4k3ButL00ksRealForShadowMeshDemo2026
+        mysql -h 10.10.24.12 -u novapay_app -pN0vaPay-ShadowMesh-2026!
+        # rotation_marker=shadowmesh_live_history
+        # session_reference={session_id}
+        history -c
+        """
+    )
+
+
+def _ensure_lines(base_content: str, lines: list[str]) -> str:
+    existing = {
+        line.strip()
+        for line in base_content.splitlines()
+        if line.strip()
+    }
+    merged = list(base_content.rstrip("\n").splitlines()) if base_content.strip() else []
+    for line in lines:
+        if line not in existing:
+            merged.append(line)
+    return "\n".join(merged) + "\n"
+
+
+def _adaptive_passwd(base_content: str, session_id: str) -> str:
+    del session_id
+    return _ensure_lines(
+        base_content,
+        [
+            "backupsvc:x:1004:1004:Backup Service:/var/backups:/bin/bash",
+            "cloudsync:x:1005:1005:Cloud Sync:/srv/cloudsync:/bin/bash",
+        ],
+    )
+
+
+def _adaptive_shadow(base_content: str, session_id: str) -> str:
+    del session_id
+    return _ensure_lines(
+        base_content,
+        [
+            "backupsvc:$6$BkSvc2026$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./abcdefghijk:19700:0:99999:7:7:7",
+            "cloudsync:$6$CldSync2026$mnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./abcdefghijklmnopq:19700:0:99999:7:7:7",
+        ],
     )
 
 
