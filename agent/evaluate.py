@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import sys
 from pathlib import Path
 
 
@@ -34,6 +33,10 @@ def parse_args() -> argparse.Namespace:
         choices=("markdown", "csv"),
         default="markdown",
         help="Output format for the comparison table",
+    )
+    parser.add_argument(
+        "--output",
+        help="Optional file path to also save the rendered comparison table",
     )
     return parser.parse_args()
 
@@ -87,19 +90,35 @@ def _metric_rows(baseline: list[dict], adaptive: list[dict]) -> list[tuple[str, 
     return rows
 
 
-def _print_markdown(rows: list[tuple[str, float, float]]) -> None:
-    print("| metric | baseline | adaptive | delta |")
-    print("|---|---:|---:|---:|")
+def _render_markdown(rows: list[tuple[str, float, float]]) -> str:
+    lines = [
+        "| metric | baseline | adaptive | delta |",
+        "|---|---:|---:|---:|",
+    ]
     for metric, base_value, adaptive_value in rows:
         delta = adaptive_value - base_value
-        print(
+        lines.append(
             f"| {metric} | {base_value:.2f} | {adaptive_value:.2f} | "
             f"{delta:+.2f} |"
         )
+    return "\n".join(lines)
 
 
-def _print_csv(rows: list[tuple[str, float, float]]) -> None:
-    writer = csv.writer(sys.stdout)
+def _print_text(text: str) -> None:
+    print(text)
+
+
+def _write_output(path: str, content: str) -> None:
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(content + "\n", encoding="utf-8")
+
+
+def _render_csv(rows: list[tuple[str, float, float]]) -> str:
+    from io import StringIO
+
+    buffer = StringIO()
+    writer = csv.writer(buffer)
     writer.writerow(["metric", "baseline", "adaptive", "delta"])
     for metric, base_value, adaptive_value in rows:
         writer.writerow(
@@ -110,6 +129,7 @@ def _print_csv(rows: list[tuple[str, float, float]]) -> None:
                 f"{adaptive_value - base_value:+.2f}",
             ]
         )
+    return buffer.getvalue().rstrip("\n")
 
 
 def main() -> int:
@@ -118,9 +138,12 @@ def main() -> int:
     adaptive = _load(args.adaptive)
     rows = _metric_rows(baseline, adaptive)
     if args.format == "csv":
-        _print_csv(rows)
+        rendered = _render_csv(rows)
     else:
-        _print_markdown(rows)
+        rendered = _render_markdown(rows)
+    _print_text(rendered)
+    if args.output:
+        _write_output(args.output, rendered)
     return 0
 
 

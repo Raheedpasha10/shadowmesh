@@ -44,13 +44,13 @@ ShadowMesh is under active development. At the time of writing, the repository i
 - an **OpenRouter-backed generative layer** that creates realistic bait artifacts for the honeypot filesystem
 - a **rule-generation module** that derives first-pass Snort and YARA artifacts from session summaries
 - an **RL contract scaffold** that defines the observation space, action space, and action logging interface
-- a **live adaptive bridge** that can log baseline actions and materialize selected bait files into Cowrie during active SSH sessions
+- a **live adaptive bridge** that can log baseline actions and materialize selected bait files into Cowrie for deterministic next-session adaptation
 
 Planned next milestones include:
 
-- the **trained RL policy** and live action-execution loop
+- stronger **baseline vs adaptive evaluation** with larger replay datasets
+- a **trained PPO policy** validated offline before live use
 - broader **web/deception surface expansion**
-- formal **evaluation against a static baseline**
 
 ---
 
@@ -210,6 +210,12 @@ The current AI layer uses OpenRouter through LiteLLM to generate realistic decep
 
 These files are intended to make the environment look more natural to an attacker and reduce obvious honeypot fingerprinting patterns.
 
+Important current reality:
+
+- the generator can build a wider bait corpus than the live demo currently proves
+- the most reliable adaptive demo path right now is on attacker-visible Cowrie files such as `/etc/passwd` and `/etc/shadow`
+- some other generated artifacts are already useful as decoy content, but are not yet part of the strongest measurable live adaptation path
+
 ---
 
 ## Rule Generation
@@ -262,6 +268,24 @@ The current live loop is deliberately small and SSH-first:
 6. The next attacker session can discover those adaptive files in a deterministic way.
 
 This gives the project a real adaptive control path before PPO training is introduced, while staying honest about the current Cowrie integration limits.
+
+### Evidence And Evaluation
+
+The repo now supports a simple baseline-vs-adaptive evaluation flow:
+
+- export closed sessions from Elasticsearch into replay datasets
+- compare those datasets with `python -m agent.evaluate`
+- save reviewer-friendly evidence tables for the report and viva
+
+Example:
+
+```bash
+python -m agent.evaluate \
+  --baseline scratch/session_replays/baseline_sessions.json \
+  --adaptive scratch/session_replays/adaptive_sessions.json \
+  --format markdown \
+  --output scratch/evidence/latest_evaluation.md
+```
 
 ---
 

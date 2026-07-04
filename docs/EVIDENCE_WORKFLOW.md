@@ -136,7 +136,8 @@ Generate the final comparison table:
 python -m agent.evaluate \
   --baseline scratch/session_replays/baseline_sessions.json \
   --adaptive scratch/session_replays/adaptive_sessions.json \
-  --format markdown
+  --format markdown \
+  --output scratch/evidence/latest_evaluation.md
 ```
 
 Metrics currently reported:

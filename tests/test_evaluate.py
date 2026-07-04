@@ -1,4 +1,4 @@
-from agent.evaluate import _bait_access_sessions, _metric_rows
+from agent.evaluate import _bait_access_sessions, _metric_rows, _render_markdown, _write_output
 
 
 def _session(**overrides):
@@ -39,3 +39,15 @@ def test_metric_rows_include_payload_and_bait_metrics():
 
     assert "bait_access_sessions" in row_names
     assert "payload_attempts" in row_names
+
+
+def test_markdown_output_can_be_written(tmp_path):
+    rows = _metric_rows([_session()], [_session(command_count=7, unique_commands=6)])
+    content = _render_markdown(rows)
+    output = tmp_path / "evaluation.md"
+
+    _write_output(str(output), content)
+
+    saved = output.read_text(encoding="utf-8")
+    assert "| metric | baseline | adaptive | delta |" in saved
+    assert "command_count" in saved
