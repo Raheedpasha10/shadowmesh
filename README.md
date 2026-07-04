@@ -253,6 +253,7 @@ The `agent/` directory now contains the contract-aligned groundwork for the adap
 - `runner.py` emits deterministic baseline actions from live `honeypot-sessions`
 - `executor.py` materializes the first supported adaptive actions back into Cowrie
 - `export_sessions.py`, `train.py`, and `evaluate.py` support replay export, offline PPO runs, and final comparison work
+- `collect_evidence.py` packages paired baseline/adaptive exports and a saved evaluation report for reviewer-ready evidence
 
 This is intentionally a scaffold, not a trained PPO agent yet. It gives the team a stable integration surface before model training starts.
 

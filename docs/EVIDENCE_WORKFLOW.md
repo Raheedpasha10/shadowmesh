@@ -50,6 +50,28 @@ Only export:
 
 ## 3. Export Commands
 
+For repeatable paired collection, prefer the one-shot helper:
+
+```bash
+python -m agent.collect_evidence \
+  --baseline-since <baseline_start_iso> \
+  --baseline-until <baseline_end_iso> \
+  --adaptive-since <adaptive_start_iso> \
+  --adaptive-until <adaptive_end_iso> \
+  --limit 100 \
+  --min-command-count 1 \
+  --output-dir scratch/evidence/latest
+```
+
+This writes:
+
+- `baseline_sessions.json`
+- `adaptive_sessions.json`
+- `evaluation.md`
+- `manifest.json`
+
+If you want the lower-level manual export flow, use:
+
 ```bash
 # Baseline export
 python -m agent.export_sessions \
