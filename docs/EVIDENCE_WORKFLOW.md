@@ -183,6 +183,15 @@ Metrics currently reported:
 - bait-access session count
 - payload-attempt count
 
+Package one evidence folder into a reviewer-friendly summary:
+
+```bash
+python -m agent.package_evidence \
+  --evidence-dir scratch/evidence/july07
+```
+
+This writes `summary_report.md` inside the same evidence directory.
+
 ## 8. Canonical Live Demo Scenario
 
 Use one deterministic demo path:

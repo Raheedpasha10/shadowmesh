@@ -267,6 +267,7 @@ The `agent/` directory now contains the contract-aligned groundwork for the adap
 - `export_sessions.py`, `train.py`, and `evaluate.py` support replay export, offline PPO runs, and final comparison work
 - `collect_evidence.py` packages paired baseline/adaptive exports and a saved evaluation report for reviewer-ready evidence
 - `compare_policies.py` compares deterministic and PPO policies on the same replay dataset
+- `package_evidence.py` turns one evidence folder into a reviewer-friendly summary report
 
 This is intentionally a scaffold, not a trained PPO agent yet. It gives the team a stable integration surface before model training starts.
 
