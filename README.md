@@ -1,12 +1,24 @@
+<p align="center">
+  <img src="docs/assets/shadowmesh-hero.svg" alt="ShadowMesh hero banner" width="100%" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.10+" />
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Compose" />
+  <img src="https://img.shields.io/badge/Elasticsearch-8.13-005571?style=for-the-badge&logo=elasticsearch&logoColor=white" alt="Elasticsearch 8.13" />
+  <img src="https://img.shields.io/badge/Cowrie-SSH%20Honeypot-1E3A5F?style=for-the-badge" alt="Cowrie SSH Honeypot" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/OpenRouter-AI%20Bait-0F766E?style=flat-square" alt="OpenRouter AI bait" />
+  <img src="https://img.shields.io/badge/PPO-Offline%20Validated-7C3AED?style=flat-square" alt="PPO offline validated" />
+  <img src="https://img.shields.io/badge/Status-Active%20Development-F59E0B?style=flat-square" alt="Active development" />
+  <img src="https://img.shields.io/badge/License-MIT-16A34A?style=flat-square" alt="MIT License" />
+</p>
+
 # ShadowMesh
 
 ## Self-Adaptive Honeypot for Intelligent Cyber Deception
-
-![Python](https://img.shields.io/badge/Python-3.10-blue?style=flat-square&logo=python&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Elasticsearch](https://img.shields.io/badge/Elasticsearch-8.13-005571?style=flat-square&logo=elasticsearch&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
-![Status](https://img.shields.io/badge/Status-Active%20Development-orange?style=flat-square)
 
 ShadowMesh is a final-year cybersecurity engineering project focused on building a **self-adaptive honeypot framework** that is harder to fingerprint, more useful for attacker observation, and better aligned with modern threat-intelligence workflows than a static decoy.
 
@@ -17,6 +29,22 @@ The project combines three major ideas into a single system:
 - **Telemetry-driven defense output:** captured attacker activity is intended to be transformed into practical detection artifacts such as Snort and YARA rules.
 
 This repository currently contains the working foundation of that system: a containerized Cowrie-based honeypot environment, a logging and session-normalization pipeline, an attacker simulator, and the first integration of the generative bait layer.
+
+## At A Glance
+
+| What makes it stand out | What is already working |
+|---|---|
+| Adaptive bait that changes attacker-visible artifacts instead of serving one static decoy forever | SSH-first Cowrie stack with Docker, Elasticsearch, Kibana, attacker simulation, and adaptive bait visibility on `/etc/passwd` and `/etc/shadow` |
+| AI-generated deception content using OpenRouter | Repeatable baseline vs adaptive evidence collection with packaged reviewer summaries |
+| Research-facing pipeline with PPO, policy comparison, and generated detection artifacts | Offline PPO smoke training, PPO inference, rule generation, and evidence packaging |
+
+## Live Loop Preview
+
+<p align="center">
+  <img src="docs/assets/shadowmesh-loop.svg" alt="ShadowMesh pixel-style live loop preview" width="100%" />
+</p>
+
+This is the current repo story in one line: **attacker lands in Cowrie -> adaptive bait gets materialized -> attacker follows the bait -> telemetry, rules, and evidence are generated from the same session flow.**
 
 ---
 

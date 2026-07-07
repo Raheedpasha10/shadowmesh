@@ -1,0 +1,102 @@
+<svg width="1280" height="420" viewBox="0 0 1280 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="80" y1="32" x2="1210" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="0.5" stop-color="#101A31"/>
+      <stop offset="1" stop-color="#091522"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#111D35"/>
+      <stop offset="1" stop-color="#0B1527"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <style>
+      .pixel { shape-rendering: crispEdges; }
+      .mono { font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace; }
+      .display { font-family: Verdana, Geneva, sans-serif; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1280" height="420" rx="28" fill="url(#bg)"/>
+  <rect x="24" y="24" width="1232" height="372" rx="22" fill="none" stroke="#1C2E52"/>
+
+  <g opacity="0.22" class="pixel">
+    <path d="M0 118H1280" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M0 186H1280" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M0 254H1280" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M0 322H1280" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M172 0V420" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M340 0V420" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M508 0V420" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M676 0V420" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M844 0V420" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+    <path d="M1012 0V420" stroke="#29406F" stroke-width="2" stroke-dasharray="4 10"/>
+  </g>
+
+  <g transform="translate(76 72)">
+    <rect x="0" y="0" width="470" height="266" rx="24" fill="url(#panel)" stroke="#29406F"/>
+    <text x="28" y="44" fill="#7EE7C8" class="mono" font-size="16">ADAPTIVE CYBER DECEPTION / SSH-FIRST / VTU FINAL YEAR PROJECT</text>
+    <text x="28" y="112" fill="#F7FBFF" class="display" font-size="62">ShadowMesh</text>
+    <text x="28" y="152" fill="#A9B8D8" class="display" font-size="24">Self-adaptive honeypot with AI bait, telemetry,</text>
+    <text x="28" y="184" fill="#A9B8D8" class="display" font-size="24">rule generation, and offline PPO evaluation.</text>
+
+    <g transform="translate(28 214)">
+      <rect width="124" height="30" rx="15" fill="#102744" stroke="#2D5BA5"/>
+      <text x="18" y="20" fill="#D7E9FF" class="mono" font-size="14">cowrie + elk</text>
+    </g>
+    <g transform="translate(164 214)">
+      <rect width="150" height="30" rx="15" fill="#102744" stroke="#2D5BA5"/>
+      <text x="18" y="20" fill="#D7E9FF" class="mono" font-size="14">openrouter bait</text>
+    </g>
+    <g transform="translate(326 214)">
+      <rect width="108" height="30" rx="15" fill="#102744" stroke="#2D5BA5"/>
+      <text x="18" y="20" fill="#D7E9FF" class="mono" font-size="14">ppo-ready</text>
+    </g>
+  </g>
+
+  <g transform="translate(620 58)" class="pixel">
+    <rect x="0" y="0" width="580" height="300" rx="24" fill="#0C1629" stroke="#24416F"/>
+    <rect x="28" y="28" width="154" height="86" rx="14" fill="#111F39" stroke="#305DAB"/>
+    <text x="46" y="58" fill="#7EE7C8" class="mono" font-size="16">docker compose</text>
+    <rect x="48" y="70" width="18" height="18" fill="#55C1FF"/>
+    <rect x="74" y="70" width="18" height="18" fill="#55C1FF"/>
+    <rect x="61" y="90" width="18" height="18" fill="#55C1FF"/>
+    <rect x="100" y="70" width="18" height="18" fill="#55C1FF"/>
+    <rect x="126" y="70" width="18" height="18" fill="#55C1FF"/>
+
+    <rect x="214" y="28" width="154" height="86" rx="14" fill="#111F39" stroke="#305DAB"/>
+    <text x="240" y="58" fill="#FFCE6B" class="mono" font-size="16">attacker</text>
+    <rect x="246" y="69" width="18" height="18" fill="#FFCE6B">
+      <animate attributeName="x" values="246;252;246" dur="1.6s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="270" y="69" width="18" height="18" fill="#FFCE6B"/>
+    <rect x="258" y="90" width="18" height="18" fill="#FFCE6B"/>
+
+    <rect x="400" y="28" width="154" height="86" rx="14" fill="#111F39" stroke="#305DAB"/>
+    <text x="440" y="58" fill="#83AFFF" class="mono" font-size="16">cowrie</text>
+    <rect x="432" y="72" width="16" height="16" fill="#83AFFF"/>
+    <rect x="452" y="72" width="16" height="16" fill="#83AFFF"/>
+    <rect x="472" y="72" width="16" height="16" fill="#83AFFF"/>
+    <rect x="442" y="92" width="16" height="16" fill="#83AFFF"/>
+    <rect x="462" y="92" width="16" height="16" fill="#83AFFF"/>
+
+    <rect x="80" y="166" width="418" height="94" rx="16" fill="#0F213C" stroke="#2D5BA5"/>
+    <text x="104" y="196" fill="#8ED5FF" class="mono" font-size="16">live loop: session -&gt; bait -&gt; telemetry -&gt; evidence</text>
+    <text x="104" y="226" fill="#D7E9FF" class="mono" font-size="14">cat /etc/passwd</text>
+    <text x="104" y="246" fill="#D7E9FF" class="mono" font-size="14">grep -E 'backupsvc|cloudsync' /etc/passwd</text>
+    <text x="104" y="266" fill="#D7E9FF" class="mono" font-size="14">honeypot-rl-actions | honeypot-sessions | generated rules</text>
+
+    <path d="M182 71H214" stroke="#7EE7C8" stroke-width="6" stroke-linecap="round"/>
+    <path d="M368 71H400" stroke="#7EE7C8" stroke-width="6" stroke-linecap="round"/>
+    <path d="M476 114V146H290V166" stroke="#7EE7C8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="198" cy="71" r="5" fill="#7EE7C8" filter="url(#glow)">
+      <animateMotion dur="2.8s" repeatCount="indefinite" path="M0 0 H170 V75 H-186 V20"/>
+    </circle>
+  </g>
+</svg>
