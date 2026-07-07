@@ -133,26 +133,38 @@ python -m agent.train \
 Compare the three supported offline policies on the same replay dataset:
 
 ```bash
-python -m agent.infer \
+.venv311/bin/python -m agent.infer \
   --dataset scratch/session_replays/adaptive_sessions.json \
   --policy do_nothing \
   --limit 10
 
-python -m agent.infer \
+.venv311/bin/python -m agent.infer \
   --dataset scratch/session_replays/adaptive_sessions.json \
   --policy show_fake_credentials_after_successful_session \
   --limit 10
 
-python -m agent.infer \
+.venv311/bin/python -m agent.infer \
   --dataset scratch/session_replays/adaptive_sessions.json \
   --policy ppo \
   --model agent/models/shadowmesh_ppo_adaptive.zip \
   --limit 10
 ```
 
+For a reviewer-friendly summary table, use:
+
+```bash
+MPLCONFIGDIR=scratch/mplconfig .venv311/bin/python -m agent.compare_policies \
+  --dataset scratch/session_replays/adaptive_sessions.json \
+  --policies do_nothing show_fake_credentials_after_successful_session ppo \
+  --model agent/models/shadowmesh_ppo_adaptive.zip \
+  --limit 10 \
+  --format markdown \
+  --output scratch/evidence/policy_comparison.md
+```
+
 ## 7. Evaluation Output
 
-Generate the final comparison table:
+Generate the final baseline-vs-adaptive comparison table:
 
 ```bash
 python -m agent.evaluate \

@@ -6,8 +6,6 @@ import argparse
 import json
 from pathlib import Path
 
-from stable_baselines3 import PPO
-
 from agent.contracts import SessionState, action_name
 from agent.environment import ShadowMeshSessionEnv
 from agent.policies import get_policy
@@ -64,6 +62,14 @@ def _run_builtin_policy(sessions: list[dict], policy_name: str, limit: int) -> i
 
 
 def _run_ppo_policy(sessions: list[dict], model_path: str, limit: int) -> int:
+    try:
+        from stable_baselines3 import PPO
+    except ModuleNotFoundError as exc:
+        raise SystemExit(
+            "stable-baselines3 is not installed. Install the full agent "
+            "dependencies with `pip install -r agent/requirements.txt`."
+        ) from exc
+
     env = ShadowMeshSessionEnv(session_summaries=sessions, reward_fn=heuristic_reward)
     model = PPO.load(model_path)
     observation, info = env.reset()

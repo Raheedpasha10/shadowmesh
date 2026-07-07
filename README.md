@@ -49,7 +49,7 @@ ShadowMesh is under active development. At the time of writing, the repository i
 Planned next milestones include:
 
 - stronger **baseline vs adaptive evaluation** with larger replay datasets
-- a **trained PPO policy** validated offline before live use
+- broader **offline PPO evaluation** before live policy replacement
 - broader **web/deception surface expansion**
 
 ---
@@ -143,6 +143,18 @@ cd shadowmesh
 ```bash
 cp .env.example .env
 # Fill in OPENROUTER_API_KEY and any model overrides you want to use
+```
+
+### 2.1 Python runtime note for RL work
+
+The general project supports Python 3.10+, but the current PPO toolchain is
+validated on **Python 3.11**. If you are running the RL scripts locally, use
+the Python 3.11 environment so `torch` and `stable-baselines3` resolve cleanly.
+
+Example:
+
+```bash
+.venv311/bin/python -m agent.train --help
 ```
 
 ### 3. Start the core stack
@@ -254,8 +266,16 @@ The `agent/` directory now contains the contract-aligned groundwork for the adap
 - `executor.py` materializes the first supported adaptive actions back into Cowrie
 - `export_sessions.py`, `train.py`, and `evaluate.py` support replay export, offline PPO runs, and final comparison work
 - `collect_evidence.py` packages paired baseline/adaptive exports and a saved evaluation report for reviewer-ready evidence
+- `compare_policies.py` compares deterministic and PPO policies on the same replay dataset
 
 This is intentionally a scaffold, not a trained PPO agent yet. It gives the team a stable integration surface before model training starts.
+
+The offline PPO smoke path is now validated:
+
+- replay dataset loads correctly
+- `check_env` passes during training
+- a smoke PPO model can be saved under `agent/models/`
+- saved PPO models can be used with `agent.infer`
 
 ### Adaptive Loop
 

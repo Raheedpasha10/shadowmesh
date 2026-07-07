@@ -6,9 +6,6 @@ import argparse
 import json
 from pathlib import Path
 
-from stable_baselines3 import PPO
-from stable_baselines3.common.env_checker import check_env
-
 from agent.environment import ShadowMeshSessionEnv
 from agent.reward import heuristic_reward
 from agent.runtime import ActionLogger, create_es_client, load_settings
@@ -28,6 +25,15 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
+    try:
+        from stable_baselines3 import PPO
+        from stable_baselines3.common.env_checker import check_env
+    except ModuleNotFoundError as exc:
+        raise SystemExit(
+            "stable-baselines3 is not installed. Install the full agent "
+            "dependencies with `pip install -r agent/requirements.txt`."
+        ) from exc
+
     args = parse_args()
     dataset_path = Path(args.dataset)
     sessions = json.loads(dataset_path.read_text(encoding="utf-8"))
