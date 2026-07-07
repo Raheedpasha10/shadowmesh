@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/shadowmesh-hero.svg" alt="ShadowMesh hero banner" width="100%" />
+  <img src="docs/assets/shadowmesh-hero.png" alt="ShadowMesh hero banner" width="100%" />
 </p>
 
 <p align="center">
@@ -30,6 +30,8 @@ The project combines three major ideas into a single system:
 
 This repository currently contains the working foundation of that system: a containerized Cowrie-based honeypot environment, a logging and session-normalization pipeline, an attacker simulator, and the first integration of the generative bait layer.
 
+> **Live demo snapshot:** in the latest evidence batch, the adaptive flow increased average session time by `+2.32s`, average command count by `+1.47`, and produced `4/4` bait-follow-up sessions.
+
 ## At A Glance
 
 | What makes it stand out | What is already working |
@@ -38,13 +40,15 @@ This repository currently contains the working foundation of that system: a cont
 | AI-generated deception content using OpenRouter | Repeatable baseline vs adaptive evidence collection with packaged reviewer summaries |
 | Research-facing pipeline with PPO, policy comparison, and generated detection artifacts | Offline PPO smoke training, PPO inference, rule generation, and evidence packaging |
 
-## Live Loop Preview
+## Project Snapshot
 
-<p align="center">
-  <img src="docs/assets/shadowmesh-loop.svg" alt="ShadowMesh pixel-style live loop preview" width="100%" />
-</p>
+At a glance, ShadowMesh combines:
 
-This is the current repo story in one line: **attacker lands in Cowrie -> adaptive bait gets materialized -> attacker follows the bait -> telemetry, rules, and evidence are generated from the same session flow.**
+- Cowrie-based SSH deception
+- OpenRouter-generated bait content
+- Elasticsearch and Kibana telemetry
+- offline PPO policy validation
+- automatic evidence and rule generation
 
 ---
 
