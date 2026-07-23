@@ -19,7 +19,8 @@ logger = logging.getLogger("generative.generator")
 # Load environment variables from the root .env file
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-API_KEY = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 PRIMARY_MODEL = os.getenv("LLM_MODEL", "openrouter/meta-llama/llama-3-8b-instruct:free")
 FALLBACK_MODELS = [
     model.strip()
@@ -27,13 +28,62 @@ FALLBACK_MODELS = [
     if model.strip()
 ]
 REQUEST_TIMEOUT_SECONDS = float(os.getenv("GENERATION_TIMEOUT_SECONDS", "45"))
+REQUEST_MAX_TOKENS = int(os.getenv("GENERATION_MAX_TOKENS", "1200"))
 REQUEST_RETRIES = int(os.getenv("GENERATION_RETRIES", "2"))
 RETRY_DELAY_SECONDS = float(os.getenv("GENERATION_RETRY_DELAY_SECONDS", "5"))
 
+KNOWN_PROVIDER_PREFIXES = (
+    "openrouter/",
+    "groq/",
+    "openai/",
+    "anthropic/",
+    "mistral/",
+    "together/",
+    "together_ai/",
+    "fireworks/",
+    "fireworks_ai/",
+    "deepseek/",
+    "gemini/",
+    "xai/",
+)
+
+PROVIDER_API_KEYS = {
+    "openrouter": OPENROUTER_API_KEY,
+    "groq": GROQ_API_KEY,
+}
+
 
 def _normalize_model_name(model_name: str) -> str:
-    """Normalize model names to the OpenRouter-prefixed LiteLLM format."""
-    return model_name if model_name.startswith("openrouter/") else f"openrouter/{model_name}"
+    """Normalize bare model IDs while preserving explicit LiteLLM providers."""
+    normalized = model_name.strip()
+    if normalized.startswith(KNOWN_PROVIDER_PREFIXES):
+        return normalized
+    return f"openrouter/{normalized}"
+
+
+def _provider_for_model(model_name: str) -> str:
+    """Return the LiteLLM provider prefix for a normalized model name."""
+    return model_name.split("/", 1)[0]
+
+
+def _api_key_for_model(model_name: str) -> str | None:
+    """Return the API key required for the model provider, when known."""
+    return PROVIDER_API_KEYS.get(_provider_for_model(model_name))
+
+
+def _configured_models_with_missing_keys() -> list[str]:
+    """List configured models that cannot run because their provider key is missing."""
+    missing = []
+    for model_name in MODELS:
+        provider = _provider_for_model(model_name)
+        if provider in PROVIDER_API_KEYS and not PROVIDER_API_KEYS[provider]:
+            missing.append(model_name)
+    return missing
+
+
+def _has_usable_model_credentials() -> bool:
+    """Return True when at least one configured model has the credentials it needs."""
+    return len(_configured_models_with_missing_keys()) < len(MODELS)
 
 
 MODELS = []
@@ -241,12 +291,20 @@ def generate_file(filename: str, prompt: str) -> dict:
     last_error: Exception | None = None
 
     for model_name in MODELS:
+        api_key = _api_key_for_model(model_name)
+        provider = _provider_for_model(model_name)
+        if provider in PROVIDER_API_KEYS and not api_key:
+            last_error = RuntimeError(f"Missing API key for provider '{provider}'")
+            logger.warning("Skipping %s because %s is not set", model_name, f"{provider.upper()}_API_KEY")
+            continue
+
         for attempt in range(1, REQUEST_RETRIES + 1):
             try:
                 response = completion(
                     model=model_name,
                     messages=[{"role": "user", "content": prompt}],
-                    api_key=API_KEY,
+                    api_key=api_key,
+                    max_tokens=REQUEST_MAX_TOKENS,
                     timeout=REQUEST_TIMEOUT_SECONDS,
                 )
                 content = _strip_code_fences(response.choices[0].message.content)
@@ -282,14 +340,20 @@ def generate_file(filename: str, prompt: str) -> dict:
 
 
 def main():
-    if not API_KEY:
-        logger.error("OPENROUTER_API_KEY not set in root .env — aborting.")
+    if not _has_usable_model_credentials():
+        logger.error(
+            "No configured generative model has its required API key set. "
+            "Set OPENROUTER_API_KEY and/or GROQ_API_KEY in root .env."
+        )
         raise SystemExit(1)
 
     logger.info("=" * 50)
     logger.info("ShadowMesh — Generative Bait File Builder")
     logger.info("=" * 50)
     logger.info("Models : %s", ", ".join(MODELS))
+    missing_key_models = _configured_models_with_missing_keys()
+    if missing_key_models:
+        logger.warning("Models skipped until API keys are set: %s", ", ".join(missing_key_models))
     logger.info("Output : %s", CACHE_DIR)
     logger.info("Files  : %d", len(FAKE_FILES))
 
