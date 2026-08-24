@@ -227,6 +227,27 @@ docker compose --profile attack run --rm attacker python simulate.py --sessions 
 docker compose --profile attack run --rm attacker python simulate.py --loop
 ```
 
+### 7. Open the reviewer dashboard
+
+For reviews and demos, use the ShadowMesh Control Room instead of switching
+between terminal, Docker Desktop, Kibana, bait files, and rule files.
+
+```bash
+pip install -r dashboard/requirements.txt
+streamlit run dashboard/app.py
+```
+
+Then open [http://localhost:8501](http://localhost:8501).
+
+From one page you can:
+
+- start or refresh the Docker stack
+- run an attacker simulation
+- see the live attack story in plain English
+- inspect recent sessions, commands, adaptive actions, and generated rules
+- preview AI-generated bait files
+- trigger rule generation for the latest session
+
 ---
 
 ## Attacker Profiles
