@@ -42,7 +42,7 @@ ES_URL = os.getenv("DASHBOARD_ES_URL", "http://localhost:9200")
 
 def _init_page() -> None:
     st.set_page_config(
-        page_title="ShadowMesh Control Room",
+        page_title="ShadowMesh — Live Deception",
         page_icon="SM",
         layout="wide",
     )
@@ -50,28 +50,28 @@ def _init_page() -> None:
         """
         <style>
         :root {
-            --sm-ink: #071015;
-            --sm-panel: rgba(10, 23, 30, 0.84);
-            --sm-panel-strong: rgba(8, 19, 25, 0.96);
-            --sm-line: rgba(148, 163, 184, 0.18);
-            --sm-line-bright: rgba(94, 234, 212, 0.42);
-            --sm-mint: #5eead4;
-            --sm-cyan: #67e8f9;
-            --sm-amber: #fbbf24;
-            --sm-coral: #fb7185;
-            --sm-text: #ecfeff;
-            --sm-muted: #9fb2b6;
+            --sm-ink: #0b0b0d;
+            --sm-panel: rgba(22, 22, 25, 0.9);
+            --sm-panel-strong: rgba(14, 14, 17, 0.97);
+            --sm-line: rgba(239, 236, 226, 0.14);
+            --sm-line-bright: rgba(201, 255, 90, 0.42);
+            --sm-mint: #c9ff5a;
+            --sm-cyan: #b9a7ff;
+            --sm-amber: #ff784f;
+            --sm-coral: #ff5c73;
+            --sm-text: #f1eee6;
+            --sm-muted: #96959c;
         }
         .stApp {
             background-color: var(--sm-ink);
             background-image:
-                linear-gradient(rgba(94, 234, 212, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(94, 234, 212, 0.035) 1px, transparent 1px);
+                linear-gradient(rgba(239, 236, 226, 0.024) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(239, 236, 226, 0.024) 1px, transparent 1px);
             background-size: 32px 32px;
             color: #eef7f6;
         }
         .block-container { padding-top: 2.2rem; padding-bottom: 3rem; max-width: 1600px; }
-        [data-testid="stSidebar"] { background: #08171d; border-right: 1px solid rgba(94, 234, 212, 0.14); }
+        [data-testid="stSidebar"] { background: #101012; border-right: 1px solid rgba(239, 236, 226, 0.1); }
         [data-testid="stSidebar"] > div:first-child { padding-top: 2rem; }
         [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h3 { letter-spacing: 0.02em; color: var(--sm-text); }
         [data-testid="stSidebar"] [data-testid="stRadio"] label { color: #b8c9cc; }
@@ -304,6 +304,168 @@ def _init_page() -> None:
         .plain-box { padding: 10px 12px; }
         [data-testid="stSidebar"] { background: rgba(8, 23, 29, 0.96); }
         [data-testid="stSidebar"] .stDivider { margin: 0.65rem 0; }
+        /* Final palette pass: lime = ShadowMesh response, ember = intrusion, lavender = evidence. */
+        [data-testid="stSidebar"] { background: #101012; border-right-color: rgba(239,236,226,0.1); }
+        [data-testid="stSidebar"] [data-testid="stRadio"] label:hover { color: var(--sm-mint); }
+        .hero-shell { border-color: rgba(201,255,90,0.34); background: #111113; }
+        .hero-scanline { background: linear-gradient(90deg, transparent, var(--sm-mint), transparent); }
+        .mesh-mark::before { border-color: rgba(201,255,90,0.22); }
+        .mesh-mark::after { border-color: rgba(255,120,79,0.24); }
+        .mesh-ring { border-color: rgba(201,255,90,0.52); }
+        .mesh-ring.reverse { border-color: rgba(185,167,255,0.48); }
+        .mesh-ring::after { background: var(--sm-amber); box-shadow: 0 0 16px rgba(255,120,79,0.68); }
+        .mesh-core { border-color: rgba(241,238,230,0.38); background: #19191c; box-shadow: 0 0 28px rgba(201,255,90,0.12), inset 0 0 18px rgba(185,167,255,0.08); }
+        .section-index { border-color: rgba(201,255,90,0.35); background: rgba(66,80,24,0.28); }
+        .signal-chip { border-color: rgba(239,236,226,0.18); background: rgba(29,29,32,0.72); }
+        div[data-testid="stButton"] button:hover { border-color: var(--sm-mint); background: rgba(66,80,24,0.45); }
+        div[data-testid="stButton"] button[kind="primary"] { border-color: rgba(201,255,90,0.65); background: rgba(79,97,27,0.72); color: #f7f5ed; }
+        code { color: var(--sm-cyan); }
+        .cinema-stage {
+            position: relative;
+            overflow: hidden;
+            min-height: 440px;
+            margin-top: 18px;
+            border: 1px solid rgba(148,163,184,0.2);
+            border-radius: 18px;
+            background: #060d12;
+            box-shadow: 0 22px 70px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .cinema-stage::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: linear-gradient(rgba(103,232,249,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(103,232,249,0.035) 1px, transparent 1px);
+            background-size: 36px 36px;
+            mask-image: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent 92%);
+        }
+        .cinema-stage::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 52% 44%, rgba(20,184,166,0.08), transparent 30%), linear-gradient(110deg, transparent 0 46%, rgba(251,191,36,0.035) 50%, transparent 54%);
+        }
+        .cinema-chrome { position: relative; z-index: 3; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 17px 19px 0; }
+        .cinema-kicker { color: var(--sm-mint); font: 700 0.62rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
+        .cinema-title { color: var(--sm-text); font-size: 1.08rem; font-weight: 760; margin-top: 6px; }
+        .cinema-subtitle { color: var(--sm-muted); font-size: 0.73rem; margin-top: 3px; }
+        .cinema-live { display: inline-flex; align-items: center; gap: 7px; border: 1px solid rgba(94,234,212,0.34); border-radius: 999px; padding: 7px 10px; color: var(--sm-mint); font: 700 0.63rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; background: rgba(13,64,67,0.22); }
+        .cinema-live.idle { color: var(--sm-muted); border-color: rgba(148,163,184,0.22); background: rgba(15,23,42,0.34); }
+        .cinema-live-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: shadowmesh-pulse 1.6s infinite; }
+        .cinema-live.idle .cinema-live-dot { animation: none; }
+        .cinema-canvas { position: relative; z-index: 2; height: 320px; margin: 10px 18px 0; }
+        .cinema-floor { position: absolute; left: 4%; right: 4%; bottom: 12px; height: 68px; border-top: 1px solid rgba(103,232,249,0.1); transform: perspective(480px) rotateX(62deg); transform-origin: bottom; background-image: linear-gradient(rgba(103,232,249,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(103,232,249,0.05) 1px, transparent 1px); background-size: 34px 20px; opacity: 0.45; }
+        .cinema-wire { position: absolute; z-index: 1; height: 2px; transform-origin: left center; background: rgba(148,163,184,0.16); transition: background 300ms ease, box-shadow 300ms ease; }
+        .cinema-wire::after { content: ""; position: absolute; left: -3px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: var(--sm-mint); opacity: 0; box-shadow: 0 0 16px 3px rgba(94,234,212,0.78); }
+        .cinema-wire.done { background: rgba(94,234,212,0.44); box-shadow: 0 0 10px rgba(94,234,212,0.12); }
+        .cinema-wire.live { background: linear-gradient(90deg, rgba(251,191,36,0.75), rgba(94,234,212,0.28)); box-shadow: 0 0 15px rgba(251,191,36,0.2); }
+        .cinema-wire.live::after { opacity: 1; animation: shadowmesh-packet 1.6s linear infinite; }
+        @keyframes shadowmesh-packet { from { left: -3px; } to { left: calc(100% - 5px); } }
+        .wire-1 { left: 16%; top: 51%; width: 12%; }
+        .wire-2 { left: 36%; top: 51%; width: 12%; }
+        .wire-3 { left: 56%; top: 48%; width: 13%; transform: rotate(-32deg); }
+        .wire-4 { left: 70%; top: 40%; width: 1px; height: 19%; background: rgba(148,163,184,0.16); }
+        .wire-4.done { background: rgba(94,234,212,0.44); }
+        .wire-4.live { background: linear-gradient(to bottom, rgba(251,191,36,0.78), rgba(94,234,212,0.25)); }
+        .wire-4::after { left: -3px; top: -3px; }
+        .wire-4.live::after { animation-name: shadowmesh-packet-vertical; }
+        @keyframes shadowmesh-packet-vertical { from { top: -3px; } to { top: calc(100% - 5px); } }
+        .wire-5 { left: 77%; top: 68%; width: 12%; transform: rotate(-28deg); }
+        .cinema-node { position: absolute; z-index: 2; width: 142px; min-height: 82px; padding: 11px 12px; border: 1px solid rgba(148,163,184,0.2); border-radius: 12px; background: rgba(8,19,25,0.92); box-shadow: 0 12px 22px rgba(0,0,0,0.22); transition: border-color 300ms ease, box-shadow 300ms ease, transform 300ms ease, opacity 300ms ease; }
+        .cinema-node::before { content: ""; position: absolute; width: 9px; height: 9px; top: 12px; right: 12px; border-radius: 50%; background: rgba(148,163,184,0.38); }
+        .cinema-node.complete { border-color: rgba(94,234,212,0.55); background: rgba(10,35,38,0.86); }
+        .cinema-node.complete::before { background: var(--sm-mint); box-shadow: 0 0 13px rgba(94,234,212,0.65); }
+        .cinema-node.current { border-color: rgba(251,191,36,0.82); transform: translateY(-5px) scale(1.03); box-shadow: 0 0 0 1px rgba(251,191,36,0.1), 0 16px 32px rgba(0,0,0,0.34), 0 0 28px rgba(251,191,36,0.12); }
+        .cinema-node.current::before { background: var(--sm-amber); box-shadow: 0 0 15px rgba(251,191,36,0.8); animation: shadowmesh-pulse 1.4s infinite; }
+        .cinema-node.future { opacity: 0.5; }
+        .cinema-node.origin { left: 2%; top: 38%; }
+        .cinema-node.decoy { left: 22%; top: 38%; }
+        .cinema-node.telemetry { left: 42%; top: 38%; }
+        .cinema-node.bait { left: 62%; top: 10%; }
+        .cinema-node.agent { left: 62%; top: 68%; }
+        .cinema-node.detection { left: 82%; top: 38%; }
+        .cinema-node-type { color: var(--sm-mint); font: 700 0.57rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
+        .cinema-node-name { color: var(--sm-text); font-size: 0.86rem; font-weight: 760; margin-top: 8px; }
+        .cinema-node-copy { color: var(--sm-muted); font-size: 0.67rem; line-height: 1.35; margin-top: 4px; }
+        .cinema-node-icon { position: absolute; left: 12px; bottom: -18px; width: 27px; height: 27px; border: 1px solid rgba(94,234,212,0.38); border-radius: 50%; background: #071015; box-shadow: 0 0 16px rgba(94,234,212,0.14); }
+        .cinema-node-icon::before, .cinema-node-icon::after { content: ""; position: absolute; background: var(--sm-mint); opacity: 0.78; }
+        .cinema-node-icon::before { left: 7px; right: 7px; top: 12px; height: 1px; }
+        .cinema-node-icon::after { top: 7px; bottom: 7px; left: 12px; width: 1px; }
+        .cinema-node.origin .cinema-node-icon { border-color: rgba(251,191,36,0.52); box-shadow: 0 0 18px rgba(251,191,36,0.16); }
+        .cinema-node.origin .cinema-node-icon::before { left: 6px; right: 6px; top: 12px; transform: rotate(-35deg); background: var(--sm-amber); }
+        .cinema-node.origin .cinema-node-icon::after { top: 6px; bottom: 6px; left: 12px; transform: rotate(35deg); background: var(--sm-amber); }
+        .cinema-node.decoy .cinema-node-icon::before { left: 6px; right: 6px; top: 9px; box-shadow: 0 5px 0 rgba(94,234,212,0.78), 0 10px 0 rgba(94,234,212,0.44); }
+        .cinema-node.decoy .cinema-node-icon::after { display: none; }
+        .cinema-node.bait .cinema-node-icon { border-radius: 5px; }
+        .cinema-node.bait .cinema-node-icon::before { left: 7px; right: 7px; top: 9px; box-shadow: 0 5px 0 rgba(94,234,212,0.42); }
+        .cinema-node.bait .cinema-node-icon::after { top: 7px; bottom: 7px; left: auto; right: 7px; width: 6px; border-left: 1px solid var(--sm-mint); border-bottom: 1px solid var(--sm-mint); background: transparent; transform: rotate(-45deg); }
+        .cinema-node.agent .cinema-node-icon { transform: rotate(45deg); border-radius: 7px; }
+        .cinema-node.agent .cinema-node-icon::before, .cinema-node.agent .cinema-node-icon::after { transform: rotate(-45deg); }
+        .cinema-node.detection .cinema-node-icon { border-radius: 4px; }
+        .cinema-node.detection .cinema-node-icon::before { left: 6px; right: 6px; top: 9px; box-shadow: 0 6px 0 rgba(94,234,212,0.42); }
+        .cinema-node.detection .cinema-node-icon::after { display: none; }
+        .split-stage { position: relative; overflow: hidden; margin-top: 18px; border: 1px solid rgba(239,236,226,0.16); border-radius: 18px; background: #0c0c0e; box-shadow: 0 24px 70px rgba(0,0,0,0.42); }
+        .split-stage::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 30% 50%, rgba(255,120,79,0.09), transparent 30%), radial-gradient(circle at 72% 50%, rgba(201,255,90,0.09), transparent 30%); }
+        .split-head { position: relative; z-index: 2; display: flex; justify-content: space-between; align-items: center; padding: 17px 20px 0; }
+        .split-head-title { color: var(--sm-text); font-size: 1.05rem; font-weight: 760; }
+        .split-head-copy { color: var(--sm-muted); font-size: 0.72rem; margin-top: 4px; }
+        .split-state { color: var(--sm-mint); font: 700 0.62rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
+        .split-state.idle { color: var(--sm-muted); }
+        .split-body { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr 1px 1fr; min-height: 390px; padding: 22px 20px 18px; gap: 18px; }
+        .split-divider { position: relative; background: linear-gradient(to bottom, transparent, rgba(239,236,226,0.22), transparent); }
+        .split-divider::before { content: "DECOY BOUNDARY"; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%) rotate(-90deg); white-space: nowrap; color: rgba(239,236,226,0.42); font: 700 0.56rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0.08em; }
+        .split-pane { position: relative; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+        .split-pane-label { color: var(--sm-muted); font: 700 0.62rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
+        .split-pane-title { color: var(--sm-text); font-size: 1.45rem; font-weight: 760; margin-top: 7px; }
+        .split-pane-copy { color: var(--sm-muted); max-width: 300px; font-size: 0.78rem; line-height: 1.45; margin-top: 7px; }
+        .split-signal { position: relative; height: 148px; margin-top: 20px; }
+        .split-track { position: absolute; left: 5%; right: 5%; top: 50%; height: 1px; background: rgba(239,236,226,0.16); }
+        .split-track::before { content: ""; position: absolute; inset: -2px 0; background: linear-gradient(90deg, transparent, rgba(255,120,79,0.62), transparent); transform: scaleX(var(--signal-progress, 0)); transform-origin: left; transition: transform 500ms ease; }
+        .split-packet { position: absolute; left: calc(5% + var(--signal-progress, 0) * 90%); top: calc(50% - 5px); width: 10px; height: 10px; border-radius: 50%; background: var(--sm-amber); box-shadow: 0 0 0 4px rgba(255,120,79,0.13), 0 0 22px rgba(255,120,79,0.72); transition: left 700ms cubic-bezier(.2,.8,.2,1); }
+        .split-event { position: absolute; left: 5%; top: 16%; max-width: 180px; color: #ece8de; font-size: 0.76rem; line-height: 1.4; opacity: 0.92; }
+        .split-event::before { content: "LATEST MOVE"; display: block; color: var(--sm-amber); font: 700 0.56rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; margin-bottom: 5px; }
+        .split-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; }
+        .split-step { height: 3px; border-radius: 999px; background: rgba(239,236,226,0.12); }
+        .split-step.done { background: var(--sm-amber); }
+        .split-pane.right .split-track::before { background: linear-gradient(90deg, transparent, rgba(201,255,90,0.7), transparent); }
+        .split-pane.right .split-packet { background: var(--sm-mint); box-shadow: 0 0 0 4px rgba(201,255,90,0.13), 0 0 22px rgba(201,255,90,0.7); }
+        .split-pane.right .split-event::before { color: var(--sm-mint); }
+        .split-footer { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 20px 18px; }
+        .split-note { border-top: 1px solid rgba(239,236,226,0.14); padding-top: 10px; color: var(--sm-muted); font-size: 0.72rem; line-height: 1.4; }
+        .split-note strong { color: var(--sm-text); font-weight: 650; }
+        @media (max-width: 900px) { .split-body { grid-template-columns: 1fr; gap: 24px; } .split-divider { height: 1px; } .split-divider::before { transform: translate(-50%,-50%); } .split-footer { grid-template-columns: 1fr; } }
+        .cinema-footer { position: relative; z-index: 3; display: grid; grid-template-columns: 1.35fr 1fr; gap: 10px; padding: 0 18px 18px; }
+        .cinema-caption { border-left: 2px solid var(--sm-amber); padding: 9px 11px; border-radius: 0 8px 8px 0; background: rgba(75,54,12,0.2); }
+        .cinema-caption.secondary { border-left-color: var(--sm-cyan); background: rgba(10,35,43,0.3); }
+        .cinema-caption-label { color: var(--sm-amber); font: 700 0.59rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
+        .cinema-caption.secondary .cinema-caption-label { color: var(--sm-cyan); }
+        .cinema-caption-text { color: #d7e7e7; font-size: 0.75rem; line-height: 1.4; margin-top: 5px; }
+        .service-rail { display: flex; align-items: stretch; gap: 7px; margin-top: 12px; padding: 8px; border: 1px solid rgba(148,163,184,0.15); border-radius: 11px; background: rgba(8,19,25,0.68); }
+        .service-rail-summary { display: flex; flex-direction: column; justify-content: center; min-width: 112px; padding: 4px 10px 4px 5px; border-right: 1px solid rgba(148,163,184,0.15); }
+        .service-rail-kicker { color: var(--sm-muted); font: 700 0.58rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase; }
+        .service-rail-count { color: var(--sm-text); font-size: 0.86rem; font-weight: 740; margin-top: 6px; }
+        .service-pill { flex: 1 1 0; min-width: 88px; padding: 8px 9px; border: 1px solid rgba(148,163,184,0.14); border-radius: 8px; background: rgba(2,8,23,0.42); }
+        .service-pill-head { display: flex; align-items: center; gap: 6px; }
+        .service-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sm-muted); }
+        .service-dot.online { background: var(--sm-mint); box-shadow: 0 0 10px rgba(94,234,212,0.55); }
+        .service-dot.offline { background: var(--sm-coral); box-shadow: 0 0 10px rgba(251,113,133,0.42); }
+        .service-name { color: #cbd5e1; font-size: 0.68rem; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .service-state { color: var(--sm-muted); font: 600 0.58rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; margin-top: 6px; text-transform: uppercase; }
+        @media (max-width: 900px) { .service-rail { flex-wrap: wrap; } .service-rail-summary { flex: 1 1 100%; border-right: 0; border-bottom: 1px solid rgba(148,163,184,0.15); padding: 4px 4px 9px; } .service-pill { min-width: 30%; } }
+        @media (max-width: 900px) {
+            .cinema-stage { min-height: 690px; }
+            .cinema-canvas { height: 535px; }
+            .cinema-node { width: 128px; }
+            .cinema-node.origin { left: 2%; top: 9%; }
+            .cinema-node.decoy { left: 52%; top: 9%; }
+            .cinema-node.telemetry { left: 2%; top: 32%; }
+            .cinema-node.bait { left: 52%; top: 32%; }
+            .cinema-node.agent { left: 2%; top: 58%; }
+            .cinema-node.detection { left: 52%; top: 58%; }
+            .wire-1, .wire-2, .wire-3, .wire-4, .wire-5 { display: none; }
+            .cinema-footer { grid-template-columns: 1fr; }
+        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -566,36 +728,97 @@ def _story_state(session: dict | None, events: list[dict]) -> dict[str, Any]:
 
 
 def render_story_board() -> dict:
-    """Render the always-present visual narrative, even before telemetry exists."""
+    """Render the always-present cinematic narrative, driven by live telemetry."""
     sessions = _attack_sessions()
     latest = sessions[0] if sessions else None
     events = _session_events(latest.get("session_id")) if latest else []
     state = _story_state(latest, events)
-    status_label = "Live signal" if state["running"] else ("Journey complete" if state["finished"] else "Ready for a run")
-    status_class = "" if state["running"] else "done"
-    step_markup = []
-    for index, ((number, label, copy), done) in enumerate(zip(state["stages"], state["complete"])):
-        css_state = "complete" if done and index < state["active"] else ("active" if index == state["active"] else "future")
-        step_markup.append(
-            f"<div class='story-step {css_state}'><div class='story-step-number'>{number}</div>"
-            f"<div class='story-step-label'>{_display(label)}</div><div class='story-step-copy'>{_display(copy)}</div></div>"
+    status_label = "Live" if state["running"] else ("Complete" if state["finished"] else "Ready")
+    status_class = "" if state["running"] else "idle"
+    active = state["active"]
+
+    def node_state(start: int, end: int) -> str:
+        if active < start:
+            return "future"
+        if start <= active <= end:
+            return "current"
+        return "complete"
+
+    def wire_state(done_at: int) -> str:
+        if active > done_at:
+            return "done"
+        if active == done_at:
+            return "live"
+        return ""
+
+    node_markup = [
+        ("origin", node_state(0, 0), "ATTACK ORIGIN", "Attacker", "A real simulator signal is moving toward the decoy."),
+        ("decoy", node_state(1, 3), "DECOY SURFACE", "Fake SSH", "Cowrie absorbs the connection and login pressure."),
+        ("telemetry", node_state(4, 4), "OBSERVABILITY", "Telemetry", "Events become a readable session story."),
+        ("bait", node_state(5, 5), "DECEPTION LAYER", "AI bait", "A believable secret gives the attacker a reason to continue."),
+        ("agent", node_state(6, 6), "ADAPTIVE LAYER", "Agent decision", "The system chooses how to keep the engagement alive."),
+        ("detection", node_state(7, 7), "DEFENSIVE OUTPUT", "Rules", "Observed behaviour is turned into Snort and YARA evidence."),
+    ]
+    node_html = []
+    for position, css_state, kind, name, copy in node_markup:
+        node_html.append(
+            f"<div class='cinema-node {position} {css_state}'>"
+            f"<div class='cinema-node-type'>{_display(kind)}</div>"
+            f"<div class='cinema-node-name'>{_display(name)}</div>"
+            f"<div class='cinema-node-copy'>{_display(copy)}</div>"
+            f"<span class='cinema-node-icon'></span></div>"
         )
-    st.markdown(
-        f"""
-        <div class="story-board">
-          <div class="story-board-head">
-            <div><div class="story-board-title">The attack journey</div><div class="story-board-subtitle">A visual explanation of what the system is doing right now.</div></div>
-            <div class="story-live {status_class}"><span class="story-live-dot"></span>{status_label}</div>
-          </div>
-          <div class="story-track">{''.join(step_markup)}</div>
-          <div class="story-detail">
-            <div class="story-detail-box"><div class="story-detail-label">Current moment</div><div class="story-detail-text">{_display(state['current_detail'])}</div></div>
-            <div class="story-detail-box"><div class="story-detail-label">What the reviewer can see</div><div class="story-detail-text">{_display(state['observed'])}</div></div>
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    wires = "".join(
+        f"<span class='cinema-wire wire-{number} {wire_state(done_at)}'></span>"
+        for number, done_at in ((1, 1), (2, 4), (3, 5), (4, 6), (5, 7))
     )
+    recent_event = events[-1] if events else {}
+    event_label = explain_event_type(recent_event.get("event_type")) if recent_event else "No telemetry has reached the scene yet."
+    command = latest.get("commands", [])[-1] if latest and latest.get("commands") else None
+    observed_detail = explain_command(command) if command else state["observed"]
+    progress = min(1.0, max(0.0, active / 7))
+    attacker_steps = [active >= point for point in (1, 2, 4, 5)]
+    response_steps = [active >= point for point in (4, 5, 6, 7)]
+    attacker_event = event_label if latest else "Waiting for the first signal from the attacker simulator."
+    response_event = state["current_detail"] if latest else "The adaptive layer is staged and ready to respond."
+    attacker_progress = min(1.0, progress * 1.06)
+    response_progress = min(1.0, max(0.0, (active - 3) / 4))
+    split_html = f"""
+        <section class="split-stage">
+          <div class="split-head">
+            <div><div class="split-head-title">The intrusion, in motion</div><div class="split-head-copy">Left side: what the attacker does. Right side: how ShadowMesh turns it into a longer, richer engagement.</div></div>
+            <div class="split-state {status_class}"><span class="cinema-live-dot"></span>{status_label}</div>
+          </div>
+          <div class="split-body">
+            <div class="split-pane left">
+              <div class="split-pane-label">The attacker</div>
+              <div class="split-pane-title">Pressure enters.</div>
+              <div class="split-pane-copy">A repeatable profile probes the fake SSH service, tests credentials, and looks for anything worth stealing.</div>
+              <div class="split-signal" style="--signal-progress:{attacker_progress:.3f}">
+                <div class="split-event">{_display(attacker_event)} {_display(observed_detail)}</div>
+                <div class="split-track"></div><div class="split-packet"></div>
+              </div>
+              <div class="split-steps">{''.join(f"<span class='split-step {'done' if done else ''}'></span>" for done in attacker_steps)}</div>
+            </div>
+            <div class="split-divider"></div>
+            <div class="split-pane right">
+              <div class="split-pane-label">ShadowMesh</div>
+              <div class="split-pane-title">The decoy answers.</div>
+              <div class="split-pane-copy">Telemetry, engineered bait, adaptive actions, and detection output turn the intrusion into intelligence.</div>
+              <div class="split-signal" style="--signal-progress:{response_progress:.3f}">
+                <div class="split-event">{_display(response_event)}</div>
+                <div class="split-track"></div><div class="split-packet"></div>
+              </div>
+              <div class="split-steps">{''.join(f"<span class='split-step {'done' if done else ''}'></span>" for done in response_steps)}</div>
+            </div>
+          </div>
+          <div class="split-footer">
+            <div class="split-note"><strong>Current frame:</strong> {_display(state['current_detail'])}</div>
+            <div class="split-note"><strong>Why it matters:</strong> {_display(state['observed'])}</div>
+          </div>
+        </section>
+    """
+    st.markdown(split_html, unsafe_allow_html=True)
     if latest:
         attack_label, explanation = classify_session(latest)
         cols = st.columns([2.2, 1, 1, 1])
@@ -654,19 +877,19 @@ def render_header() -> None:
         <span class="hero-scanline"></span>
         <div class="hero-layout">
           <div>
-            <div class="hero-kicker">ShadowMesh / Unified Demonstration Layer</div>
-            <div class="hero-title">Control Room</div>
-            <div class="hero-copy">One clear story from attacker behaviour to adaptive deception and detection output. The services stay independent underneath; the reviewer sees the whole system here.</div>
-            <div class="hero-status"><span class="status-orb online"></span><strong>Review mode ready</strong> · telemetry, deception, and detection are connected</div>
+            <div class="hero-kicker">ShadowMesh / Adaptive deception</div>
+            <div class="hero-title">A breach that fights back.</div>
+            <div class="hero-copy">Watch an intrusion cross the decoy boundary, discover engineered bait, trigger an adaptive response, and leave behind usable detection evidence.</div>
+            <div class="hero-status"><span class="status-orb online"></span><strong>Live system ready</strong> · every movement is tied to real telemetry</div>
             <div class="signal-strip">
-              <span class="signal-chip"><strong>6</strong> connected layers</span>
-              <span class="signal-chip"><strong>SSH</strong> deception target</span>
-              <span class="signal-chip"><strong>AI</strong> bait artifacts</span>
-              <span class="signal-chip"><strong>Snort + YARA</strong> output</span>
+              <span class="signal-chip"><strong>SSH</strong> decoy</span>
+              <span class="signal-chip"><strong>Live</strong> adaptation</span>
+              <span class="signal-chip"><strong>AI</strong> deception</span>
+              <span class="signal-chip"><strong>Snort + YARA</strong></span>
             </div>
           </div>
           <div class="mesh-mark" aria-label="ShadowMesh six-layer mesh emblem">
-            <div class="mesh-ring"></div><div class="mesh-ring reverse"></div><div class="mesh-core">SM</div>
+            <div class="mesh-ring"></div><div class="mesh-ring reverse"></div><div class="mesh-core">S/M</div>
           </div>
         </div>
         </section>
@@ -699,7 +922,6 @@ def render_demo_walkthrough() -> None:
 
 
 def render_status() -> None:
-    st.markdown('<div class="section-heading"><span class="section-index">02</span><div><div class="section-kicker">Live service fabric</div><div class="section-title">System Status</div></div></div>', unsafe_allow_html=True)
     ok, health = es_request("GET", "_cluster/health")
     services = docker_services()
     running = {
@@ -715,20 +937,22 @@ def render_status() -> None:
         "Executor": _service_state(running, "action-executor"),
         "Kibana": _service_state(running, "kibana"),
     }
-    cols = st.columns(len(service_states))
-    for column, (label, state) in zip(cols, service_states.items()):
-        column.metric(label, state)
-
-    if ok:
-        st.caption(f"Elasticsearch cluster status: {health.get('status', 'unknown')}")
+    active = sum("running" in str(state).lower() for state in running.values()) if running else 0
+    pills = []
+    for label, state in service_states.items():
+        online = state.lower() in {"online", "running"} or "running" in state.lower()
+        pills.append(
+            f"<div class='service-pill'><div class='service-pill-head'><span class='service-dot {'online' if online else 'offline'}'></span><span class='service-name'>{_display(label)}</span></div><div class='service-state'>{_display(state)}</div></div>"
+        )
+    cluster = health.get("status", "unknown") if ok else "unreachable"
+    st.markdown(
+        f"<div class='service-rail'><div class='service-rail-summary'><div class='service-rail-kicker'>System heartbeat</div><div class='service-rail-count'>{active}/6 services live</div></div>{''.join(pills)}</div>",
+        unsafe_allow_html=True,
+    )
+    if not ok:
+        st.caption("Elasticsearch is unreachable. Start the stack from the maintenance controls; the cinematic scene remains available in preview mode.")
     else:
-        st.warning("Elasticsearch is not reachable yet. Start the stack first. The dashboard is still usable in review mode.")
-
-    if running:
-        active = sum("running" in str(state).lower() for state in running.values())
-        st.caption(f"Docker reports {active} running service(s). Refresh the page after starting the stack to update this signal.")
-    else:
-        st.caption("Docker has not reported any ShadowMesh services yet.")
+        st.caption(f"Telemetry fabric: {cluster} cluster · the scene is fed by live service signals.")
 
 
 def _service_state(running: dict[str, str], service: str) -> str:
@@ -742,23 +966,23 @@ def render_sidebar() -> str:
     """Provide a quiet review navigation rail without duplicating page content."""
     with st.sidebar:
         st.markdown("### ShadowMesh")
-        st.caption("Control Room")
+        st.caption("Live deception system")
         view = st.radio(
             "Workspace",
-            ["Mission Control", "Evidence Lab", "Bait Studio", "Rules Lab"],
+            ["Live Story", "Session Replay", "Decoy Library", "Detection Output"],
             label_visibility="collapsed",
         )
         st.divider()
-        st.caption("A single review layer over the independent ShadowMesh services.")
-        st.markdown("#### External tools")
+        st.caption("One visual narrative over the independent ShadowMesh services.")
+        st.markdown("#### Data sources")
         st.link_button("Open Kibana", "http://localhost:5601", width="stretch")
         st.link_button("Open Elasticsearch", ES_URL, width="stretch")
     return view
 
 
 def render_controls() -> None:
-    st.markdown('<div class="section-heading"><span class="section-index">03</span><div><div class="section-kicker">Operator actions</div><div class="section-title">Demo Controls</div></div></div>', unsafe_allow_html=True)
-    st.caption("Start one review scenario here. The supporting maintenance actions stay available below.")
+    st.markdown('<div class="section-heading"><span class="section-index">01</span><div><div class="section-kicker">Simulation</div><div class="section-title">Run a live scenario</div></div></div>', unsafe_allow_html=True)
+    st.caption("Choose an attacker behaviour. The split-screen sequence begins as soon as telemetry arrives.")
     profile_col, sessions_col, run_col = st.columns([1.1, 0.7, 1.2])
     with profile_col:
         profile = st.selectbox(
@@ -769,11 +993,11 @@ def render_controls() -> None:
     with sessions_col:
         sessions = st.number_input("Sessions", min_value=1, max_value=10, value=1)
     with run_col:
-        if st.button("Run Attack Simulation", width="stretch"):
+        if st.button("Start live attack", type="primary", width="stretch"):
             ok, output = _start_attack(profile, int(sessions))
             _remember_command(f"Run {profile} attack", ok, output)
 
-    with st.expander("Stack and artifact maintenance"):
+    with st.expander("System tools"):
         start_col, stop_col, bait_col, rules_col = st.columns(4)
         with start_col:
             rebuild = st.checkbox("Rebuild images", value=False, help="Only enable this when source or dependency files changed.")
@@ -832,9 +1056,9 @@ def _generative_python() -> str:
 
 def render_live_overview(sessions: list[dict]) -> dict:
     """Show the current session as a single reviewer-friendly control signal."""
-    st.markdown('<div class="section-heading"><span class="section-index">04</span><div><div class="section-kicker">Behaviour signal</div><div class="section-title">Live Attack Overview</div></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-heading"><span class="section-index">02</span><div><div class="section-kicker">Session replay</div><div class="section-title">What happened</div></div></div>', unsafe_allow_html=True)
     if not sessions:
-        st.info("No live session has reached Elasticsearch yet. The review path is ready; run an attack from Demo Controls.")
+        st.info("No session has reached Elasticsearch yet. Start a live attack from the story view.")
         return {}
 
     options = [
@@ -884,7 +1108,7 @@ def render_story(latest: dict) -> None:
 
 
 def render_adaptive_actions() -> None:
-    st.markdown('<div class="section-heading"><span class="section-index">05</span><div><div class="section-kicker">Agent response</div><div class="section-title">Adaptive actions</div></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-heading"><span class="section-index">03</span><div><div class="section-kicker">Response</div><div class="section-title">How the decoy answered</div></div></div>', unsafe_allow_html=True)
     docs = search_index("honeypot-rl-actions", size=8)
     if not docs:
         st.info("No adaptive actions recorded yet. The agent will appear here after it observes a session.")
@@ -903,7 +1127,7 @@ def render_adaptive_actions() -> None:
 
 
 def render_generated_rule_records() -> None:
-    st.markdown('<div class="section-heading"><span class="section-index">05</span><div><div class="section-kicker">Detection evidence</div><div class="section-title">Generated rule records</div></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-heading"><span class="section-index">03</span><div><div class="section-kicker">Detection evidence</div><div class="section-title">What the system produced</div></div></div>', unsafe_allow_html=True)
     docs = search_index("honeypot-generated-rules", size=5)
     if not docs:
         st.info("No rule records yet. Click Generate Rules after a session closes.")
@@ -922,7 +1146,7 @@ def render_generated_rule_records() -> None:
 
 
 def render_bait_files() -> None:
-    st.markdown('<div class="section-heading"><span class="section-index">06</span><div><div class="section-kicker">Deception artifacts</div><div class="section-title">AI Bait Files</div></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-heading"><span class="section-index">02</span><div><div class="section-kicker">Deception artifacts</div><div class="section-title">Inside the decoy</div></div></div>', unsafe_allow_html=True)
     selected = st.selectbox(
         "Bait artifact",
         BAIT_FILES,
@@ -948,7 +1172,7 @@ def render_bait_files() -> None:
 
 
 def render_rule_files() -> None:
-    st.markdown('<div class="section-heading"><span class="section-index">07</span><div><div class="section-kicker">Detection artifacts</div><div class="section-title">Rule Files On Disk</div></div></div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-heading"><span class="section-index">02</span><div><div class="section-kicker">Detection artifacts</div><div class="section-title">Generated rules</div></div></div>', unsafe_allow_html=True)
     output_root = ROOT_DIR / "rules" / "output"
     files = sorted(
         [path for path in output_root.rglob("*") if path.suffix in {".rules", ".yar"}],
@@ -982,21 +1206,20 @@ def main() -> None:
     view = render_sidebar()
     render_header()
 
-    if view == "Mission Control":
-        render_demo_walkthrough()
-        render_status()
+    if view == "Live Story":
         render_controls()
         render_live_story()
-    elif view == "Evidence Lab":
+        render_status()
+    elif view == "Session Replay":
         render_status()
         latest = render_live_overview(search_index("honeypot-sessions", size=12))
         render_story(latest)
         render_adaptive_actions()
-    elif view == "Bait Studio":
-        st.markdown('<div class="workspace-intro"><div class="section-kicker">Deception artifacts</div><div class="workspace-title">AI Bait Studio</div><div class="workspace-copy">Inspect the exact local artifact and the attacker-visible path it is mounted into.</div></div>', unsafe_allow_html=True)
+    elif view == "Decoy Library":
+        st.markdown('<div class="workspace-intro"><div class="section-kicker">Deception artifacts</div><div class="workspace-title">Decoy Library</div><div class="workspace-copy">Inspect the engineered files the attacker can discover inside the fake environment.</div></div>', unsafe_allow_html=True)
         render_bait_files()
     else:
-        st.markdown('<div class="workspace-intro"><div class="section-kicker">Detection artifacts</div><div class="workspace-title">Rules Lab</div><div class="workspace-copy">Review generated Snort and YARA artifacts, then trace them back to the attacker session.</div></div>', unsafe_allow_html=True)
+        st.markdown('<div class="workspace-intro"><div class="section-kicker">Detection artifacts</div><div class="workspace-title">Detection Output</div><div class="workspace-copy">Review the defensive rules produced from the behaviour you just watched unfold.</div></div>', unsafe_allow_html=True)
         render_rule_files()
         render_generated_rule_records()
 

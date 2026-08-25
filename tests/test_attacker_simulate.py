@@ -13,7 +13,11 @@ sys.modules.setdefault(
     ),
 )
 
-from attacker.simulate import _drain_shell_output, _queue_follow_up_command
+from attacker.simulate import (
+    PROFILE_LOGIN_SEQUENCE,
+    _drain_shell_output,
+    _queue_follow_up_command,
+)
 
 
 class FakeShell:
@@ -64,3 +68,12 @@ def test_drain_shell_output_collects_multiple_chunks():
     output = _drain_shell_output(shell, settle_seconds=0.0, max_wait_seconds=0.1)
 
     assert "backupsvc:x:1004:1004:Backup Service" in output
+
+
+def test_profiles_use_distinct_failed_attempt_sequences_before_deploy():
+    assert [item[0] for item in PROFILE_LOGIN_SEQUENCE["scriptkiddie"]][-1] == "deploy"
+    assert [item[0] for item in PROFILE_LOGIN_SEQUENCE["opportunist"]][-1] == "deploy"
+    assert [item[0] for item in PROFILE_LOGIN_SEQUENCE["targeted"]][-1] == "deploy"
+    assert len(PROFILE_LOGIN_SEQUENCE["scriptkiddie"]) < len(PROFILE_LOGIN_SEQUENCE["opportunist"])
+    assert len(PROFILE_LOGIN_SEQUENCE["targeted"]) < len(PROFILE_LOGIN_SEQUENCE["opportunist"])
+    assert all(username not in {"root", "admin", "user", "ubuntu", "debian", "pi", "oracle", "postgres", "deploy", "git", "manager", "support", "backup", "service"} for profile, attempts in PROFILE_LOGIN_SEQUENCE.items() for username, _ in attempts[:-1])

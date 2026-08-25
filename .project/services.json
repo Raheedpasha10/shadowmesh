@@ -1,0 +1,536 @@
+{
+  "schema_version": 1,
+
+  "project": {
+    "name": "ShadowMesh",
+    "root": "/Users/raheedpasha/honeypot",
+    "type": "docker",
+    "description": "Self-adaptive SSH honeypot framework: Cowrie, Elasticsearch, RL agent, generative AI bait, React reviewer dashboard. Orchestrated via Docker Compose with three separate host-side Python virtual environments.",
+    "repository_type": "git",
+    "monorepo": false
+  },
+
+  "requirements": {
+    "os": "macOS",
+    "runtimes": [
+      {
+        "name": "docker",
+        "version": "Docker Compose v5.3.1",
+        "check": "docker compose version"
+      },
+      {
+        "name": "python-dashboard",
+        "interpreter": ".venv/bin/python",
+        "version": "3.14.7",
+        "check": ".venv/bin/python --version"
+      },
+      {
+        "name": "python-generative",
+        "interpreter": "generative/venv/bin/python",
+        "version": "3.14.7",
+        "check": "generative/venv/bin/python --version"
+      },
+      {
+        "name": "python-rl",
+        "interpreter": ".venv311/bin/python",
+        "version": "3.11.15",
+        "check": ".venv311/bin/python --version"
+      },
+      {
+        "name": "node",
+        "version": "26.7.0",
+        "check": "node --version"
+      },
+      {
+        "name": "npm",
+        "version": "11.19.0",
+        "check": "npm --version"
+      }
+    ],
+    "tools": [
+      "docker",
+      "docker compose",
+      "npm",
+      "curl",
+      "nc"
+    ]
+  },
+
+  "environment": {
+    "env_file": ".env",
+    "env_template": ".env.example",
+    "required_variables": [
+      {
+        "name": "OPENROUTER_API_KEY",
+        "secret": true,
+        "used_by": "generative/generator.py",
+        "description": "API key for OpenRouter LLM provider. Required for bait file generation."
+      }
+    ],
+    "optional_variables": [
+      {
+        "name": "GROQ_API_KEY",
+        "secret": true,
+        "description": "Optional Groq API key for LLM fallback."
+      },
+      {
+        "name": "LLM_MODEL",
+        "secret": false,
+        "description": "Primary LLM model. Defaults to openrouter/meta-llama/llama-3-8b-instruct:free."
+      },
+      {
+        "name": "LLM_FALLBACK_MODELS",
+        "secret": false,
+        "description": "Comma-separated fallback model list."
+      },
+      {
+        "name": "AGENT_POLICY",
+        "secret": false,
+        "description": "Baseline agent policy. Defaults to show_fake_credentials_after_successful_session."
+      },
+      {
+        "name": "DASHBOARD_ES_URL",
+        "secret": false,
+        "description": "Elasticsearch URL for dashboard. Defaults to http://127.0.0.1:9200."
+      }
+    ]
+  },
+
+  "setup": {
+    "first_time": [
+      {
+        "name": "create_env_file",
+        "command": "cp .env.example .env",
+        "working_directory": ".",
+        "description": "Create .env from template. User must fill in OPENROUTER_API_KEY.",
+        "run_when": "once",
+        "skip_if": ".env exists"
+      }
+    ],
+    "if_missing": [
+      {
+        "name": "generate_bait_files",
+        "command": "generative/venv/bin/python generative/generator.py",
+        "working_directory": ".",
+        "interpreter": "generative/venv/bin/python",
+        "run_when": "if_missing",
+        "outputs": ["generative/cache/"],
+        "skip_if": "generative/cache/ directory exists and is non-empty",
+        "check": "test -f generative/cache/passwd && test -f generative/cache/shadow",
+        "description": "Generate AI bait files. Requires OPENROUTER_API_KEY. Skip when bait cache exists."
+      },
+      {
+        "name": "install_dashboard_npm_deps",
+        "command": "npm install",
+        "working_directory": "dashboard/web",
+        "run_when": "if_missing",
+        "outputs": ["dashboard/web/node_modules/"],
+        "skip_if": "dashboard/web/node_modules/ exists",
+        "check": "test -d dashboard/web/node_modules",
+        "description": "Install frontend Node dependencies."
+      },
+      {
+        "name": "build_dashboard_frontend",
+        "command": "npm run build",
+        "working_directory": "dashboard/web",
+        "run_when": "if_missing",
+        "outputs": ["dashboard/web/dist/"],
+        "skip_if": "dashboard/web/dist/ exists",
+        "check": "test -f dashboard/web/dist/index.html",
+        "description": "Compile React dashboard so the Python server can serve it."
+      }
+    ]
+  },
+
+  "services": [
+    {
+      "name": "docker-stack",
+      "description": "Docker Compose stack: Cowrie (SSH honeypot), Elasticsearch, Kibana, log forwarder, agent-runner, action-executor.",
+      "category": "A_every_startup",
+      "type": "docker",
+      "required": true,
+      "runtime": {
+        "type": "docker"
+      },
+      "working_directory": "infra",
+      "dependencies": [],
+      "startup": {
+        "command": "docker compose up -d",
+        "shell": "/bin/zsh",
+        "background": false,
+        "foreground_wait": true
+      },
+      "stop": {
+        "command": "docker compose down",
+        "working_directory": "infra"
+      },
+      "readiness": {
+        "method": "command",
+        "command": "docker compose -f infra/docker-compose.yml ps --format '{{.Name}} {{.State}}' | grep -v attacker | grep -cv running | grep -q '^0$'",
+        "timeout_seconds": 120,
+        "interval_seconds": 5
+      },
+      "sub_services": [
+        {
+          "name": "cowrie",
+          "description": "Cowrie SSH honeypot — captures attacker interactions.",
+          "type": "backend",
+          "port": 2222,
+          "additional_ports": [2223],
+          "readiness": {
+            "method": "tcp",
+            "command": "nc -z localhost 2222",
+            "host": "localhost",
+            "port": 2222,
+            "timeout_seconds": 60
+          }
+        },
+        {
+          "name": "elasticsearch",
+          "description": "Elasticsearch 8.13.4 — log storage and query engine.",
+          "type": "database",
+          "port": 9200,
+          "url": "http://localhost:9200",
+          "readiness": {
+            "method": "http",
+            "command": "curl -sf http://localhost:9200/_cluster/health",
+            "url": "http://localhost:9200/_cluster/health",
+            "expected": "status green or yellow",
+            "timeout_seconds": 90
+          }
+        },
+        {
+          "name": "kibana",
+          "description": "Kibana 8.13.4 — Elasticsearch visualization.",
+          "type": "frontend",
+          "port": 5601,
+          "url": "http://localhost:5601",
+          "depends_on": ["elasticsearch"],
+          "readiness": {
+            "method": "http",
+            "command": "curl -sf http://localhost:5601/api/status",
+            "url": "http://localhost:5601/api/status",
+            "timeout_seconds": 120
+          }
+        },
+        {
+          "name": "forwarder",
+          "description": "Log forwarder — normalizes Cowrie events into Elasticsearch.",
+          "type": "worker",
+          "depends_on": ["elasticsearch", "cowrie"],
+          "readiness": {
+            "method": "command",
+            "command": "docker inspect --format='{{.State.Running}}' forwarder",
+            "timeout_seconds": 60
+          }
+        },
+        {
+          "name": "agent-runner",
+          "description": "Baseline RL agent — polls sessions, emits adaptive actions.",
+          "type": "worker",
+          "depends_on": ["elasticsearch"],
+          "readiness": {
+            "method": "command",
+            "command": "docker inspect --format='{{.State.Running}}' agent-runner",
+            "timeout_seconds": 60
+          }
+        },
+        {
+          "name": "action-executor",
+          "description": "Action executor — materializes bait files into Cowrie honeyfs.",
+          "type": "worker",
+          "depends_on": ["elasticsearch"],
+          "readiness": {
+            "method": "command",
+            "command": "docker inspect --format='{{.State.Running}}' action-executor",
+            "timeout_seconds": 60
+          }
+        }
+      ]
+    },
+    {
+      "name": "dashboard-backend",
+      "description": "Python HTTP API + React static server for the ShadowMesh reviewer dashboard.",
+      "category": "A_every_startup",
+      "type": "backend",
+      "required": true,
+      "runtime": {
+        "type": "python",
+        "interpreter": ".venv/bin/python",
+        "version": "3.14.7"
+      },
+      "working_directory": ".",
+      "dependencies": ["docker-stack"],
+      "startup": {
+        "command": ".venv/bin/python -m dashboard.server",
+        "shell": "/bin/zsh",
+        "background": true
+      },
+      "stop": {
+        "command": "pkill -f '.venv/bin/python -m dashboard.server' || true",
+        "working_directory": "."
+      },
+      "port": 8501,
+      "url": "http://localhost:8501",
+      "readiness": {
+        "method": "http",
+        "command": "curl -sf http://localhost:8501",
+        "url": "http://localhost:8501",
+        "timeout_seconds": 30,
+        "interval_seconds": 2
+      },
+      "environment": [
+        {
+          "name": "DASHBOARD_ES_URL",
+          "required": false,
+          "secret": false,
+          "default": "http://127.0.0.1:9200"
+        }
+      ]
+    }
+  ],
+
+  "startup_sequence": [
+    {
+      "order": 1,
+      "service": "docker-stack",
+      "command": "docker compose up -d",
+      "working_directory": "infra",
+      "background": false,
+      "wait_for_ready": true,
+      "readiness_check": "curl -sf http://localhost:9200/_cluster/health && nc -z localhost 2222",
+      "category": "A_every_startup"
+    },
+    {
+      "order": 2,
+      "service": "dashboard-backend",
+      "command": ".venv/bin/python -m dashboard.server",
+      "working_directory": ".",
+      "background": true,
+      "wait_for_ready": true,
+      "readiness_check": "curl -sf http://localhost:8501",
+      "category": "A_every_startup"
+    }
+  ],
+
+  "health_checks": [
+    {
+      "name": "elasticsearch_healthy",
+      "command": "curl -sf http://localhost:9200/_cluster/health",
+      "expected": "HTTP 200, status green or yellow",
+      "port": 9200
+    },
+    {
+      "name": "cowrie_ssh_listening",
+      "command": "nc -z localhost 2222",
+      "expected": "TCP connection succeeds",
+      "port": 2222
+    },
+    {
+      "name": "kibana_responding",
+      "command": "curl -sf http://localhost:5601/api/status",
+      "expected": "HTTP 200",
+      "port": 5601
+    },
+    {
+      "name": "all_containers_running",
+      "command": "docker compose -f infra/docker-compose.yml ps --format '{{.Name}} {{.State}}' | grep -v attacker | grep -cv running | grep -q '^0$'",
+      "expected": "Exit code 0 (all non-attacker containers running)"
+    },
+    {
+      "name": "dashboard_responding",
+      "command": "curl -sf http://localhost:8501",
+      "expected": "HTTP 200",
+      "port": 8501
+    },
+    {
+      "name": "dashboard_interpreter_valid",
+      "command": ".venv/bin/python --version",
+      "expected": "Python 3.14.7"
+    },
+    {
+      "name": "generative_interpreter_valid",
+      "command": "generative/venv/bin/python -c 'import litellm'",
+      "expected": "Exit code 0"
+    },
+    {
+      "name": "rl_interpreter_valid",
+      "command": ".venv311/bin/python -c 'import stable_baselines3'",
+      "expected": "Exit code 0"
+    }
+  ],
+
+  "application": {
+    "primary_url": "http://localhost:8501",
+    "urls": [
+      {
+        "name": "Dashboard (reviewer interface)",
+        "url": "http://localhost:8501",
+        "description": "Primary application interface."
+      },
+      {
+        "name": "Kibana",
+        "url": "http://localhost:5601",
+        "description": "Elasticsearch visualization dashboard."
+      },
+      {
+        "name": "Elasticsearch API",
+        "url": "http://localhost:9200",
+        "description": "Direct Elasticsearch API access."
+      },
+      {
+        "name": "Cowrie SSH",
+        "url": "ssh://localhost:2222",
+        "description": "SSH honeypot endpoint (connect as attacker)."
+      }
+    ],
+    "ports": [2222, 2223, 5601, 8501, 9200],
+    "test_command": "curl -sf http://localhost:8501 && curl -sf http://localhost:9200/_cluster/health && nc -z localhost 2222"
+  },
+
+  "optional": [
+    {
+      "name": "dashboard-frontend-dev",
+      "description": "Vite dev server for React frontend hot-reload. Development only.",
+      "category": "D_development_only",
+      "command": "npm run dev",
+      "working_directory": "dashboard/web",
+      "runtime": {
+        "type": "node"
+      },
+      "background": true,
+      "port": 5173,
+      "url": "http://localhost:5173",
+      "dependencies": ["dashboard-backend"],
+      "readiness": {
+        "command": "curl -sf http://localhost:5173"
+      },
+      "stop": {
+        "command": "pkill -f 'vite --host 127.0.0.1' || true"
+      }
+    },
+    {
+      "name": "attacker-simulation",
+      "description": "Contained attacker simulator. Manual/on-demand only.",
+      "category": "E_manual_on_demand",
+      "commands": [
+        {
+          "name": "single_opportunist",
+          "command": "docker compose --profile attack run --rm attacker python simulate.py --profile opportunist --sessions 1",
+          "working_directory": "infra"
+        },
+        {
+          "name": "single_scriptkiddie",
+          "command": "docker compose --profile attack run --rm attacker python simulate.py --profile scriptkiddie --sessions 1",
+          "working_directory": "infra"
+        },
+        {
+          "name": "single_targeted",
+          "command": "docker compose --profile attack run --rm attacker python simulate.py --profile targeted --sessions 1",
+          "working_directory": "infra"
+        },
+        {
+          "name": "multiple_mixed",
+          "command": "docker compose --profile attack run --rm attacker python simulate.py --sessions 3",
+          "working_directory": "infra"
+        },
+        {
+          "name": "continuous_loop",
+          "command": "docker compose --profile attack run --rm attacker python simulate.py --loop",
+          "working_directory": "infra"
+        }
+      ],
+      "dependencies": ["docker-stack"]
+    },
+    {
+      "name": "regenerate-bait",
+      "description": "Regenerate AI bait files. On-demand only.",
+      "category": "E_manual_on_demand",
+      "command": "generative/venv/bin/python generative/generator.py",
+      "working_directory": ".",
+      "runtime": {
+        "type": "python",
+        "interpreter": "generative/venv/bin/python",
+        "version": "3.14.7"
+      },
+      "requires_env": ["OPENROUTER_API_KEY"]
+    },
+    {
+      "name": "generate-rules",
+      "description": "Generate Snort/YARA rules from latest session. On-demand only.",
+      "category": "E_manual_on_demand",
+      "command": ".venv/bin/python rules/generator.py",
+      "working_directory": ".",
+      "runtime": {
+        "type": "python",
+        "interpreter": ".venv/bin/python",
+        "version": "3.14.7"
+      },
+      "dependencies": ["docker-stack"]
+    },
+    {
+      "name": "rl-training",
+      "description": "Offline PPO training on session replays. Research only.",
+      "category": "D_development_only",
+      "command": ".venv311/bin/python -m agent.train",
+      "working_directory": ".",
+      "runtime": {
+        "type": "python",
+        "interpreter": ".venv311/bin/python",
+        "version": "3.11.15"
+      }
+    },
+    {
+      "name": "rl-evaluation",
+      "description": "Compare baseline vs adaptive policies. Research only.",
+      "category": "D_development_only",
+      "command": ".venv311/bin/python -m agent.evaluate --baseline scratch/session_replays/baseline_sessions.json --adaptive scratch/session_replays/adaptive_sessions.json",
+      "working_directory": ".",
+      "runtime": {
+        "type": "python",
+        "interpreter": ".venv311/bin/python",
+        "version": "3.11.15"
+      }
+    },
+    {
+      "name": "run-tests",
+      "description": "Run project test suite. Development only.",
+      "category": "D_development_only",
+      "command": ".venv/bin/python -m pytest",
+      "working_directory": ".",
+      "runtime": {
+        "type": "python",
+        "interpreter": ".venv/bin/python",
+        "version": "3.14.7"
+      }
+    }
+  ],
+
+  "shutdown": [
+    {
+      "order": 1,
+      "name": "stop_dashboard",
+      "command": "pkill -f '.venv/bin/python -m dashboard.server' || true",
+      "working_directory": "."
+    },
+    {
+      "order": 2,
+      "name": "stop_docker_stack",
+      "command": "docker compose down",
+      "working_directory": "infra"
+    }
+  ],
+
+  "notes": [
+    "CRITICAL: This project uses THREE separate Python virtual environments. Never use system python, python3, or conda python. Every host-side Python command must use the exact interpreter path from .venv/bin/python, generative/venv/bin/python, or .venv311/bin/python.",
+    "The default PATH python is conda base (3.13.9) which has ZERO project dependencies. Using it will cause ImportError for litellm, elasticsearch, and all other project packages.",
+    "The attacker simulator is excluded from default startup. It runs on demand via the Docker Compose 'attack' profile and is contained to the local honeypot network.",
+    "All six Docker containers (cowrie, elasticsearch, kibana, forwarder, agent-runner, action-executor) start together with a single 'docker compose up -d' from the infra/ directory.",
+    "The dashboard backend is a host-side Python process (not a Docker container). It serves the pre-built React frontend from dashboard/web/dist/ and proxies Elasticsearch queries.",
+    "The Vite dev server (port 5173) is only needed during frontend development. Production uses the pre-built dist/ served by the Python backend on port 8501.",
+    "Bait file generation requires OPENROUTER_API_KEY in .env. Pre-generated files persist in generative/cache/ and only need regeneration when refreshing content.",
+    "Elasticsearch runs with xpack.security.enabled=false — no database authentication.",
+    "The RL/PPO toolchain (.venv311) requires Python 3.11 for torch==2.2.0 compatibility. It is for offline research, not runtime.",
+    "Cowrie exposes SSH on port 2222 and Telnet on port 2223. The primary integration path is SSH."
+  ]
+}

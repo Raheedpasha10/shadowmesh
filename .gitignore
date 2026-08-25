@@ -89,3 +89,10 @@ Icon?
 logging/esdata/
 logging/kibanadata/
 Honeypot Adaptive Learning Overview.md
+
+# Frontend compiler output (source TypeScript and package lock are tracked)
+dashboard/web/node_modules/
+dashboard/web/*.tsbuildinfo
+dashboard/web/vite.config.js
+dashboard/web/vite.config.d.ts
+dashboard/.profile_state.json

@@ -227,17 +227,33 @@ docker compose --profile attack run --rm attacker python simulate.py --sessions 
 docker compose --profile attack run --rm attacker python simulate.py --loop
 ```
 
-### 7. Open the reviewer dashboard
+### 7. Open the dashboard
 
-For reviews and demos, use the ShadowMesh Control Room instead of switching
-between terminal, Docker Desktop, Kibana, bait files, and rule files.
+The dashboard gives reviewers one place to run a scenario and follow the
+attacker, honeypot telemetry, adaptive action, bait files, and generated rules.
+The existing services remain independent; the dashboard only connects their
+controls and data in one browser interface.
+
+Build the web interface once after cloning:
 
 ```bash
-pip install -r dashboard/requirements.txt
-streamlit run dashboard/app.py
+cd dashboard/web
+npm install
+npm run build
+cd ../..
+```
+
+Start the local dashboard server:
+
+```bash
+python -m dashboard.server
 ```
 
 Then open [http://localhost:8501](http://localhost:8501).
+
+For frontend development, run `npm run dev` from `dashboard/web` in a second
+terminal. The previous Streamlit implementation remains in `dashboard/app.py`
+as a fallback, but it is no longer the primary reviewer interface.
 
 From one page you can:
 

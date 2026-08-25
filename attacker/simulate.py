@@ -112,6 +112,30 @@ PROFILE_MAX_ATTEMPTS = {
     "targeted":     5,
 }
 
+# Keep the review scenario repeatable: every profile has its own failed-login
+# rhythm before it reaches the known decoy credential. The unknown usernames
+# are intentionally outside Cowrie's local userdb so the failures are real.
+PROFILE_LOGIN_SEQUENCE = {
+    "scriptkiddie": [
+        ("guest", "123456"),
+        ("operator", "password"),
+        ("testuser", "admin"),
+        ("deploy", "123456"),
+    ],
+    "opportunist": [
+        ("guest", "password"),
+        ("operator", "admin"),
+        ("svc-backup", "letmein"),
+        ("testuser", "password1"),
+        ("deploy", "123456"),
+    ],
+    "targeted": [
+        ("svc-backup", "password"),
+        ("operator", "admin123"),
+        ("deploy", "123456"),
+    ],
+}
+
 
 DISCOVERY_FOLLOW_UPS = {
     "cat /etc/passwd": {
@@ -205,47 +229,49 @@ def brute_force_ssh(
         Tuple of (successful_username, successful_password) or (None, None).
     """
     max_attempts = PROFILE_MAX_ATTEMPTS[profile]
-    usernames_to_try = random.sample(USERNAMES, min(len(USERNAMES), 5))
-    passwords_to_try = passwords[:max_attempts]
+    configured_sequence = PROFILE_LOGIN_SEQUENCE[profile]
+    valid_password = passwords[0] if passwords else "123456"
+    credential_sequence = [
+        (username, password if username != "deploy" else valid_password)
+        for username, password in configured_sequence[:max_attempts]
+    ]
 
     logger.info(
-        "[%s] Starting brute force — %d usernames × %d passwords",
-        profile, len(usernames_to_try), len(passwords_to_try),
+        "[%s] Starting brute force — %d credential attempts before shell access",
+        profile, len(credential_sequence),
     )
 
-    for username in usernames_to_try:
-        for password in passwords_to_try:
-            try:
-                client = paramiko.SSHClient()
-                client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                client.connect(
-                    hostname=host,
-                    port=port,
-                    username=username,
-                    password=password,
-                    timeout=5,
-                    banner_timeout=10,
-                    auth_timeout=5,
-                    look_for_keys=False,
-                    allow_agent=False,
-                )
-                logger.info(
-                    "[%s] Login SUCCEEDED — %s:%s", profile, username, password
-                )
-                client.close()
-                return username, password
+    for username, password in credential_sequence:
+        try:
+            client = paramiko.SSHClient()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(
+                hostname=host,
+                port=port,
+                username=username,
+                password=password,
+                timeout=5,
+                banner_timeout=10,
+                auth_timeout=5,
+                look_for_keys=False,
+                allow_agent=False,
+            )
+            logger.info(
+                "[%s] Login SUCCEEDED after %d attempt(s) — %s",
+                profile, credential_sequence.index((username, password)) + 1, username,
+            )
+            client.close()
+            return username, password
 
-            except paramiko.AuthenticationException:
-                logger.debug(
-                    "[%s] Failed — %s:%s", profile, username, password
-                )
-                # Vary delay between attempts based on profile
-                min_d, max_d = PROFILE_DELAY[profile]
-                time.sleep(random.uniform(min_d / 2, max_d / 2))
+        except paramiko.AuthenticationException:
+            logger.info("[%s] Login rejected — %s", profile, username)
+            # Vary delay between attempts based on profile.
+            min_d, max_d = PROFILE_DELAY[profile]
+            time.sleep(random.uniform(min_d / 2, max_d / 2))
 
-            except (socket.timeout, paramiko.SSHException, OSError) as exc:
-                logger.warning("[%s] Connection error: %s", profile, exc)
-                time.sleep(1)
+        except (socket.timeout, paramiko.SSHException, OSError) as exc:
+            logger.warning("[%s] Connection error: %s", profile, exc)
+            time.sleep(1)
 
     logger.info("[%s] Brute force exhausted — no valid credentials found", profile)
     return None, None
@@ -428,12 +454,10 @@ def run_attack_session(profile: str, passwords: list[str]) -> dict:
         "commands_run":  0,
     }
 
-    # Phase 1 — Scan (scriptkiddie always scans; others sometimes skip)
-    if profile == "scriptkiddie" or random.random() > 0.3:
-        result["scan_success"] = scan_target(TARGET_HOST, TARGET_PORT)
-    else:
-        logger.info("[%s] Skipping scan (stealthy mode)", profile)
-        result["scan_success"] = True
+    # Phase 1 — Every profile discovers the exposed service before login.
+    # The profile differences begin in the credential rhythm and follow-up
+    # behavior, so the review story always starts with a believable scan.
+    result["scan_success"] = scan_target(TARGET_HOST, TARGET_PORT)
 
     if not result["scan_success"]:
         logger.warning("[%s] Target unreachable — aborting session", profile)

