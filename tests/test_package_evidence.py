@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from agent.package_evidence import _report_text
 
 

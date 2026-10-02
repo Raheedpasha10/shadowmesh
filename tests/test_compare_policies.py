@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from agent.compare_policies import _builtin_policy_summary, _render_markdown
 
 
@@ -44,3 +46,18 @@ def test_render_markdown_contains_policy_rows():
 
     assert "| policy | sessions | avg_reward | top_action | action_breakdown |" in rendered
     assert "| do_nothing | 2 | 10.00 | do_nothing | do_nothing:2 |" in rendered
+
+
+def test_ppo_policy_summary_evaluates_sessions():
+    from agent.compare_policies import _ppo_policy_summary
+
+    summary = _ppo_policy_summary(
+        [_session(), _session(session_id="sess-2")],
+        "agent/models/shadowmesh_ppo_adaptive.zip",
+        limit=2,
+    )
+    assert summary["policy_name"] == "ppo"
+    assert summary["sessions_evaluated"] == 2
+    assert "top_action" in summary
+    assert summary["average_reward"] > 0
+

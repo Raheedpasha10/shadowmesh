@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+_DATACLASS_FROZEN_KWARGS = (
+    {"frozen": True, "slots": True} if sys.version_info >= (3, 10) else {"frozen": True}
+)
 
-@dataclass(frozen=True, slots=True)
+
+@dataclass(**_DATACLASS_FROZEN_KWARGS)
 class BaitFile:
     """Reviewer-friendly metadata for one generated bait artifact."""
 

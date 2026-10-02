@@ -4,7 +4,11 @@ from __future__ import annotations
 
 import logging
 import os
+import sys
 from dataclasses import dataclass, field
+
+_DATACLASS_KWARGS = {"slots": True} if sys.version_info >= (3, 10) else {}
+
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -20,7 +24,7 @@ ROOT_DIR = Path(__file__).resolve().parents[1]
 ENV_PATH = ROOT_DIR / ".env"
 
 
-@dataclass(slots=True)
+@dataclass(**_DATACLASS_KWARGS)
 class ActionDecision:
     """Serializable action record for `honeypot-rl-actions`."""
 
@@ -128,6 +132,10 @@ def load_settings() -> dict[str, Any]:
             "/actions/generated",
         ),
         "ppo_model_dir": os.getenv("PPO_MODEL_DIR", "agent/models"),
+        "ppo_model_path": os.getenv(
+            "PPO_MODEL_PATH",
+            "agent/models/shadowmesh_ppo_adaptive.zip",
+        ),
     }
 
 

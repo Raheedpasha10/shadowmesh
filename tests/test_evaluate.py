@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from agent.evaluate import _bait_access_sessions, _metric_rows, _render_markdown, _write_output
 
 

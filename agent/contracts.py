@@ -7,7 +7,10 @@ training begins.
 
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
+
+_DATACLASS_KWARGS = {"slots": True} if sys.version_info >= (3, 10) else {}
 
 import numpy as np
 from gymnasium import spaces
@@ -38,7 +41,7 @@ ACTION_MAP = {
 }
 
 
-@dataclass(slots=True)
+@dataclass(**_DATACLASS_KWARGS)
 class SessionState:
     """Typed view of the fields the agent consumes from `honeypot-sessions`."""
 

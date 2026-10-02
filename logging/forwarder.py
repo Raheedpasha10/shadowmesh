@@ -18,6 +18,8 @@ Environment variables (see .env.example):
   COWRIE_LOG_PATH  Path to cowrie.json     (default: /logs/cowrie.json)
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import os

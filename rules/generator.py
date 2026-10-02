@@ -13,7 +13,10 @@ import json
 import logging
 import os
 import re
+import sys
 from dataclasses import dataclass
+
+_DATACLASS_KWARGS = {"slots": True} if sys.version_info >= (3, 10) else {}
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -38,7 +41,7 @@ DEFAULT_DB_SID_BASE = 9_002_001
 YARA_GENERATOR_NAME = "honeypot-rule-generator-v1"
 
 
-@dataclass(slots=True)
+@dataclass(**_DATACLASS_KWARGS)
 class SessionSummary:
     """Subset of `honeypot-sessions` fields used by the rule generator."""
 

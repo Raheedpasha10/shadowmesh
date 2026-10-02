@@ -30,6 +30,12 @@ count:
   - run the stack with both services enabled
   - discard the first successful session as the adaptation seed/warm-up
 
+For offline validation and testing before live attack simulation, generate the canonical datasets with:
+
+```bash
+python -m agent.seed_datasets
+```
+
 Recommended attacker profile for both datasets:
 
 ```bash

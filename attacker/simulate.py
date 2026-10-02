@@ -15,6 +15,8 @@ Usage (inside container):
   python simulate.py --loop                 # run indefinitely (for training data)
 """
 
+from __future__ import annotations
+
 import argparse
 import logging
 import os
