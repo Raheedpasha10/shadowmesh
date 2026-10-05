@@ -67,6 +67,36 @@ const attackerProfiles = [
   },
 ]
 
+const SERVICE_METADATA: Record<string, { role: string; port?: string; description: string }> = {
+  cowrie: {
+    role: 'Honeypot Decoy',
+    port: ':2222',
+    description: 'SSH interaction emulator capturing attacker commands and authentication attempts.',
+  },
+  elasticsearch: {
+    role: 'Telemetry Store',
+    port: ':9200',
+    description: 'Central event and session index for honeypot telemetry and generated rules.',
+  },
+  forwarder: {
+    role: 'Log Ingestion Pipeline',
+    description: 'Continuously tails cowrie.json and indexes normalized events into Elasticsearch.',
+  },
+  'agent-runner': {
+    role: 'Adaptive Decision Agent',
+    description: 'Evaluates closed session summaries and issues reinforcement baseline actions.',
+  },
+  'action-executor': {
+    role: 'Deception Materializer',
+    description: 'Mounts and writes deceptive bait artifacts into Cowrie honey filesystem paths.',
+  },
+  kibana: {
+    role: 'Security Analytics',
+    port: ':5601',
+    description: 'Web visualization interface for querying raw honeypot indexes and security logs.',
+  },
+}
+
 function stageFor(live: LiveResponse | null) {
   if (!live?.session && !live?.attack) return 0
   const session = live.session ?? {}
@@ -390,10 +420,121 @@ function App() {
         <div className="brand"><div className="brand-mark"><span /></div><div><strong>ShadowMesh</strong><small>Adaptive honeypot</small></div></div>
         <div className="side-section-label">Workspace</div>
         <nav className="nav-list" aria-label="Main navigation">
-          {navItems.map(({ id, label, icon: Icon }) => <button key={id} className={`nav-item ${view === id ? 'selected' : ''}`} onClick={() => setView(id)}><Icon /><span>{label}</span>{id === 'overview' && live?.attack?.status === 'running' && <i className="nav-live-dot" />}</button>)}
+          {navItems.map(({ id, label, icon: Icon }) => {
+            let badge: string | number | null = null
+            if (id === 'sessions' && sessions.length > 0) badge = sessions.length
+            if (id === 'bait') {
+              const activeCount = bait.filter((b) => b.exists).length
+              if (activeCount > 0) badge = activeCount
+            }
+            if (id === 'rules' && rules.records.length > 0) badge = rules.records.length
+
+            return (
+              <button
+                key={id}
+                className={`nav-item ${view === id ? 'selected' : ''}`}
+                onClick={() => setView(id)}
+              >
+                <Icon />
+                <span>{label}</span>
+                {id === 'overview' && live?.attack?.status === 'running' && (
+                  <i className="nav-live-dot" />
+                )}
+                {badge !== null && <span className="nav-badge">{badge}</span>}
+              </button>
+            )
+          })}
         </nav>
         <div className="sidebar-spacer" />
-        <div className="stack-summary"><div className="side-section-label">System</div><div className="stack-summary-title"><span className={`status-dot ${services?.online === services?.total && services?.total ? 'online' : ''}`} />{services ? `${services.online}/${services.total} services online` : 'Checking services'}</div><p>Live data is read from the local ShadowMesh stack.</p></div>
+        <div
+          className="stack-summary stack-summary-clickable"
+          role="button"
+          tabIndex={0}
+          onClick={() => setSystemOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              setSystemOpen(true)
+            }
+          }}
+          aria-label="System status. Click to open management drawer."
+        >
+          <div className="stack-header-row">
+            <span className="side-section-label">System</span>
+            <span className="stack-manage-hint">
+              Manage <ChevronIcon />
+            </span>
+          </div>
+          <div className="stack-summary-title">
+            <span
+              className={`status-dot ${
+                services?.online === services?.total && services?.total
+                  ? 'online'
+                  : services?.online
+                  ? 'degraded'
+                  : ''
+              }`}
+            />
+            {services
+              ? `${services.online}/${services.total} services online`
+              : 'Checking services…'}
+          </div>
+
+          <div className="stack-services-mini-grid">
+            {(services?.services || Object.keys(SERVICE_METADATA).map((id) => ({
+              id,
+              name: id,
+              online: false,
+              state: 'checking',
+            }))).map((s) => (
+              <div
+                key={s.id}
+                className={`mini-service-pill ${s.online ? 'online' : 'offline'}`}
+                title={`${s.name}: ${s.state}`}
+              >
+                <span className="mini-dot" />
+                <span className="mini-name">
+                  {s.id === 'agent-runner'
+                    ? 'agent'
+                    : s.id === 'action-executor'
+                    ? 'executor'
+                    : s.id === 'elasticsearch'
+                    ? 'elastic'
+                    : s.id}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="stack-quick-actions" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="stack-quick-btn start"
+              disabled={busy}
+              onClick={() =>
+                void runAction(
+                  '/api/stack/start',
+                  {},
+                  'Starting all ShadowMesh services…'
+                )
+              }
+            >
+              Start all
+            </button>
+            <button
+              className="stack-quick-btn stop"
+              disabled={busy}
+              onClick={() =>
+                void runAction(
+                  '/api/stack/stop',
+                  {},
+                  'Stopping all ShadowMesh services…'
+                )
+              }
+            >
+              Stop all
+            </button>
+          </div>
+        </div>
         <div className="sidebar-footer"><button className="quiet-button" onClick={() => { void refreshServices(); void refreshData() }}><RefreshIcon /> Refresh</button><a className="quiet-button" href="http://localhost:5601" target="_blank" rel="noreferrer"><ExternalIcon /> Kibana</a></div>
       </aside>
       <main className="main-content">
@@ -443,8 +584,194 @@ function ProfilePicker({ profile, setProfile, sessionCount, onClose, onLaunch, b
   </div>
 }
 
-function SystemPanel({ services, jobs, busy, onClose, onAction }: { services: ServicesResponse | null; jobs: Job[]; busy: boolean; onClose: () => void; onAction: (path: string, body: Record<string, unknown>, success: string) => Promise<void> }) {
-  return <><button className="drawer-backdrop" aria-label="Close system controls" onClick={onClose} /><aside className="system-drawer" aria-label="System controls"><div className="drawer-header"><div><span className="panel-kicker">Local environment</span><h2>System</h2></div><button className="icon-button" onClick={onClose} aria-label="Close"><CloseIcon /></button></div><div className="drawer-actions"><button className="primary-button" disabled={busy} onClick={() => onAction('/api/stack/start', {}, 'Services are starting in the background.')}>Start services</button><button className="secondary-button danger-button" disabled={busy} onClick={() => onAction('/api/stack/stop', {}, 'Services are stopping in the background.')}>Stop services</button></div><section className="drawer-section"><div className="drawer-section-head"><strong>Services</strong><span>{services ? `${services.online}/${services.total} online` : 'Checking'}</span></div><div className="drawer-service-list">{services?.services.map((service) => <div className="drawer-service" key={service.id}><span className={`status-dot ${service.online ? 'online' : ''}`} /><div><strong>{service.name}</strong><small>{service.state}</small></div></div>) ?? <Empty text="Checking local services…" />}</div></section><section className="drawer-section"><div className="drawer-section-head"><strong>Recent jobs</strong><span>{jobs.length}</span></div><div className="job-list">{jobs.length ? jobs.slice(0, 6).map((job) => <div className="job-item" key={job.id}><span className={`job-state ${job.status}`} /><div><strong>{job.name}</strong><small>{job.status} · {relativeTime(job.finished_at ?? job.started_at)}</small></div></div>) : <Empty text="No dashboard jobs have run yet." />}</div></section><div className="drawer-links"><a href="http://localhost:5601" target="_blank" rel="noreferrer">Open Kibana <ExternalIcon /></a><a href="http://localhost:9200" target="_blank" rel="noreferrer">Open Elasticsearch <ExternalIcon /></a></div></aside></>
+function SystemPanel({
+  services,
+  jobs,
+  busy,
+  onClose,
+  onAction,
+}: {
+  services: ServicesResponse | null
+  jobs: Job[]
+  busy: boolean
+  onClose: () => void
+  onAction: (path: string, body: Record<string, unknown>, success: string) => Promise<void>
+}) {
+  const serviceList = services?.services || Object.keys(SERVICE_METADATA).map((id) => ({
+    id,
+    name: id,
+    online: false,
+    state: 'offline',
+  }))
+
+  return (
+    <>
+      <button className="drawer-backdrop" aria-label="Close system controls" onClick={onClose} />
+      <aside className="system-drawer" aria-label="System controls">
+        <div className="drawer-header">
+          <div>
+            <span className="panel-kicker">Local environment</span>
+            <h2>System &amp; Services</h2>
+          </div>
+          <button className="icon-button" onClick={onClose} aria-label="Close">
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className="drawer-actions">
+          <button
+            className="primary-button"
+            disabled={busy}
+            onClick={() =>
+              void onAction(
+                '/api/stack/start',
+                {},
+                'Starting all ShadowMesh services in the background…'
+              )
+            }
+          >
+            Start all services
+          </button>
+          <button
+            className="secondary-button danger-button"
+            disabled={busy}
+            onClick={() =>
+              void onAction(
+                '/api/stack/stop',
+                {},
+                'Stopping all ShadowMesh services in the background…'
+              )
+            }
+          >
+            Stop all services
+          </button>
+        </div>
+
+        <section className="drawer-section">
+          <div className="drawer-section-head">
+            <strong>Individual services</strong>
+            <span>
+              {services ? `${services.online}/${services.total} online` : 'Checking…'}
+            </span>
+          </div>
+          <div className="drawer-service-list">
+            {serviceList.map((service) => {
+              const meta = SERVICE_METADATA[service.id] || {
+                role: 'Container Service',
+                description: service.name,
+              }
+
+              return (
+                <div className="drawer-service" key={service.id}>
+                  <div className="drawer-service-info">
+                    <span className={`status-dot ${service.online ? 'online' : ''}`} />
+                    <div className="drawer-service-text">
+                      <strong>
+                        {service.name}
+                        {meta.port && (
+                          <span className="service-meta-tag port">{meta.port}</span>
+                        )}
+                        <span
+                          className={`service-state-tag ${
+                            service.online ? 'online' : 'offline'
+                          }`}
+                        >
+                          {service.state || (service.online ? 'running' : 'offline')}
+                        </span>
+                      </strong>
+                      <small>{meta.description}</small>
+                    </div>
+                  </div>
+                  <div className="drawer-service-actions">
+                    {service.online ? (
+                      <>
+                        <button
+                          className="btn-service-action restart"
+                          disabled={busy}
+                          title={`Restart ${service.name}`}
+                          onClick={() =>
+                            void onAction(
+                              '/api/service/restart',
+                              { service: service.id },
+                              `Restarting ${service.name}…`
+                            )
+                          }
+                        >
+                          Restart
+                        </button>
+                        <button
+                          className="btn-service-action stop"
+                          disabled={busy}
+                          title={`Stop ${service.name}`}
+                          onClick={() =>
+                            void onAction(
+                              '/api/service/stop',
+                              { service: service.id },
+                              `Stopping ${service.name}…`
+                            )
+                          }
+                        >
+                          Stop
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        className="btn-service-action start"
+                        disabled={busy}
+                        title={`Start ${service.name}`}
+                        onClick={() =>
+                          void onAction(
+                            '/api/service/start',
+                            { service: service.id },
+                            `Starting ${service.name}…`
+                          )
+                        }
+                      >
+                        Start
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+
+        <section className="drawer-section">
+          <div className="drawer-section-head">
+            <strong>Recent background jobs</strong>
+            <span>{jobs.length}</span>
+          </div>
+          <div className="job-list">
+            {jobs.length ? (
+              jobs.slice(0, 6).map((job) => (
+                <div className="job-item" key={job.id}>
+                  <span className={`job-state ${job.status}`} />
+                  <div>
+                    <strong>{job.name}</strong>
+                    <small>
+                      {job.status} · {relativeTime(job.finished_at ?? job.started_at)}
+                    </small>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <Empty text="No dashboard jobs have run yet." />
+            )}
+          </div>
+        </section>
+
+        <div className="drawer-links">
+          <a href="http://localhost:5601" target="_blank" rel="noreferrer">
+            Open Kibana <ExternalIcon />
+          </a>
+          <a href="http://localhost:9200" target="_blank" rel="noreferrer">
+            Open Elasticsearch <ExternalIcon />
+          </a>
+        </div>
+      </aside>
+    </>
+  )
 }
 
 function Overview({

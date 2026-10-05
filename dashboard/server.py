@@ -686,10 +686,12 @@ def cancel_active_attack() -> dict[str, Any]:
 
 
 def latest_disk_rule_record(session_ids: list[str] | None = None) -> dict[str, Any] | None:
-    """Find and parse the latest generated rule files on disk."""
+    """Find and parse the latest generated rule files on disk for the specified session(s)."""
     if not RULES_DIR.exists():
         return None
-    ids = set(session_ids or [])
+    ids = [sid for sid in (session_ids or []) if sid]
+    if not ids:
+        return None
 
     rule_files = sorted(RULES_DIR.rglob("*.rules"), key=lambda p: p.stat().st_mtime, reverse=True)
     target_rule_file: Path | None = None
@@ -697,8 +699,6 @@ def latest_disk_rule_record(session_ids: list[str] | None = None) -> dict[str, A
         if any(sid in rf.name for sid in ids):
             target_rule_file = rf
             break
-    if not target_rule_file and rule_files:
-        target_rule_file = rule_files[0]
 
     if not target_rule_file:
         return None
@@ -1122,6 +1122,24 @@ class DashboardHandler(BaseHTTPRequestHandler):
             elif path == "/api/stack/stop":
                 command = ["docker", "compose", "-f", str(COMPOSE_FILE), "stop"]
                 self.send_json({"job": launch_job("Stop services", command)}, HTTPStatus.ACCEPTED)
+            elif path == "/api/service/start":
+                service_id = str(payload.get("service") or "").strip()
+                if service_id not in SERVICE_LABELS:
+                    raise ValueError(f"Unknown service: {service_id}")
+                command = ["docker", "compose", "-f", str(COMPOSE_FILE), "up", "-d", service_id]
+                self.send_json({"job": launch_job(f"Start {SERVICE_LABELS[service_id]}", command)}, HTTPStatus.ACCEPTED)
+            elif path == "/api/service/stop":
+                service_id = str(payload.get("service") or "").strip()
+                if service_id not in SERVICE_LABELS:
+                    raise ValueError(f"Unknown service: {service_id}")
+                command = ["docker", "compose", "-f", str(COMPOSE_FILE), "stop", service_id]
+                self.send_json({"job": launch_job(f"Stop {SERVICE_LABELS[service_id]}", command)}, HTTPStatus.ACCEPTED)
+            elif path == "/api/service/restart":
+                service_id = str(payload.get("service") or "").strip()
+                if service_id not in SERVICE_LABELS:
+                    raise ValueError(f"Unknown service: {service_id}")
+                command = ["docker", "compose", "-f", str(COMPOSE_FILE), "restart", service_id]
+                self.send_json({"job": launch_job(f"Restart {SERVICE_LABELS[service_id]}", command)}, HTTPStatus.ACCEPTED)
             elif path == "/api/bait/regenerate":
                 command = [generative_python(), "generative/generator.py"]
                 self.send_json({"job": launch_job("Regenerate bait", command)}, HTTPStatus.ACCEPTED)

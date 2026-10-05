@@ -151,28 +151,36 @@ export function deriveActiveStageFromBackend(
     return { stage: termStage, isCompleted: true, isRunning: false, isIdle: false }
   }
 
-  // Active running scenario progression strictly based on real evidence and phase:
-  if (phase === 'generating_rules' || (hasRules && phase !== 'materializing_bait' && phase !== 'waiting_for_action')) {
-    return { stage: 'detect', isCompleted: false, isRunning, isIdle: false }
-  }
-  if (phase === 'materializing_bait' || (hasActions && !hasRules && phase !== 'waiting_for_action')) {
-    return { stage: 'deceive', isCompleted: false, isRunning, isIdle: false }
-  }
-  if (phase === 'waiting_for_action' || hasActions) {
-    return { stage: 'decide', isCompleted: false, isRunning, isIdle: false }
-  }
-  const isSessionClosed =
-    live?.session?.session_active === false ||
-    live?.events?.some(e => e.event_type === 'cowrie.session.closed') ||
-    phase === 'processing_events'
-  if (isSessionClosed && hasCommands) {
-    return { stage: 'understand', isCompleted: false, isRunning, isIdle: false }
-  }
-  if (hasCommands) {
-    return { stage: 'observe', isCompleted: false, isRunning, isIdle: false }
+  // When actively running, advance stage strictly in sequential order:
+  if (isRunning) {
+    if (phase === 'generating_rules') {
+      return { stage: 'detect', isCompleted: false, isRunning: true, isIdle: false }
+    }
+    if (phase === 'materializing_bait') {
+      return { stage: 'deceive', isCompleted: false, isRunning: true, isIdle: false }
+    }
+    if (phase === 'waiting_for_action') {
+      return { stage: 'decide', isCompleted: false, isRunning: true, isIdle: false }
+    }
+    const isSessionClosed =
+      live?.session?.session_active === false ||
+      live?.events?.some(e => e.event_type === 'cowrie.session.closed') ||
+      phase === 'processing_events'
+    if (isSessionClosed && hasCommands) {
+      return { stage: 'understand', isCompleted: false, isRunning: true, isIdle: false }
+    }
+    if (hasCommands) {
+      return { stage: 'observe', isCompleted: false, isRunning: true, isIdle: false }
+    }
+    return { stage: 'attack', isCompleted: false, isRunning: true, isIdle: false }
   }
 
-  return { stage: 'attack', isCompleted: false, isRunning, isIdle: false }
+  // When not actively running (historical review or stopped):
+  if (hasRules) return { stage: 'detect', isCompleted: false, isRunning: false, isIdle: false }
+  if (hasActions) return { stage: 'deceive', isCompleted: false, isRunning: false, isIdle: false }
+  if (hasCommands) return { stage: 'understand', isCompleted: false, isRunning: false, isIdle: false }
+
+  return { stage: 'attack', isCompleted: false, isRunning: false, isIdle: false }
 }
 
 function fmtTime(v?: string) {

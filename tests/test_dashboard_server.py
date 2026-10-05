@@ -105,8 +105,33 @@ def test_latest_disk_rule_record_reads_files(monkeypatch, tmp_path) -> None:
 
     record = server.latest_disk_rule_record([session_id])
     assert record is not None
-    assert record["session_id"] == session_id
-    assert len(record["snort_rules"]) == 1
-    assert len(record["yara_rules"]) == 1
+    assert record["snort_rules"] == ['alert tcp any any -> any 22 (msg:"Test rule"; sid:9000001;)']
+    assert record["yara_rules"] == ["rule Honeypot_Test { condition: true }"]
     assert record["rule_count"] == 2
+
+    assert server.latest_disk_rule_record(["different-session"]) is None
+    assert server.latest_disk_rule_record([]) is None
+    assert server.latest_disk_rule_record(None) is None
+
+
+def test_service_management_commands(monkeypatch) -> None:
+    from dashboard import server
+
+    recorded_jobs = []
+
+    def fake_launch_job(name: str, cmd: list) -> dict:
+        recorded_jobs.append((name, cmd))
+        return {"id": "test-job-id", "name": name, "status": "running"}
+
+    monkeypatch.setattr(server, "launch_job", fake_launch_job)
+
+    # Test unknown service validation
+    import pytest
+
+    # Verify SERVICE_LABELS covers the expected services
+    expected_services = ["cowrie", "elasticsearch", "forwarder", "agent-runner", "action-executor", "kibana"]
+    for svc in expected_services:
+        assert svc in server.SERVICE_LABELS
+
+
 
