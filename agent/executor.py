@@ -23,6 +23,19 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _resolve_safe_dir(configured_dir: Path | str, fallback: Path) -> Path:
+    target = Path(configured_dir)
+    try:
+        target.mkdir(parents=True, exist_ok=True)
+        test_file = target / ".write_test"
+        test_file.touch(exist_ok=True)
+        test_file.unlink(missing_ok=True)
+        return target
+    except (OSError, PermissionError):
+        fallback.mkdir(parents=True, exist_ok=True)
+        return fallback
+
+
 def main() -> int:
     args = parse_args()
     logging.basicConfig(
@@ -32,12 +45,10 @@ def main() -> int:
 
     settings = load_settings()
     client = create_es_client(settings["es_url"])
-    loot_dir = Path(settings["action_loot_dir"])
-    aws_dir = Path(settings["action_aws_dir"])
-    generated_dir = Path(settings["action_generated_dir"])
-    loot_dir.mkdir(parents=True, exist_ok=True)
-    aws_dir.mkdir(parents=True, exist_ok=True)
-    generated_dir.mkdir(parents=True, exist_ok=True)
+    root_dir = Path(__file__).resolve().parents[1]
+    loot_dir = _resolve_safe_dir(settings["action_loot_dir"], root_dir / "agent" / "loot")
+    aws_dir = _resolve_safe_dir(settings["action_aws_dir"], root_dir / "agent" / "aws")
+    generated_dir = _resolve_safe_dir(settings["action_generated_dir"], root_dir / "generative" / "cache")
 
     seen_ids: set[str] = set()
     started_at = datetime.now(timezone.utc)

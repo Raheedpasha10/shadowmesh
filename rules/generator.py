@@ -265,17 +265,31 @@ class RuleGenerator:
         )
 
 
+def resolve_rules_output_dir(configured_dir: Path | str | None = None) -> Path:
+    """Resolve a safe, writable output directory for generated rules."""
+    target = Path(configured_dir) if configured_dir else DEFAULT_RULES_OUTPUT_DIR
+    try:
+        target.mkdir(parents=True, exist_ok=True)
+        test_file = target / ".write_test"
+        test_file.touch(exist_ok=True)
+        test_file.unlink(missing_ok=True)
+        return target
+    except (OSError, PermissionError):
+        DEFAULT_RULES_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        return DEFAULT_RULES_OUTPUT_DIR
+
+
 def load_settings() -> dict:
     """Load environment-backed settings for Elasticsearch and output paths."""
     load_dotenv(ENV_PATH)
+    raw_output = os.getenv("RULES_OUTPUT_DIR")
+    output_dir = resolve_rules_output_dir(raw_output)
     return {
         "es_host": os.getenv("ES_HOST", DEFAULT_ES_HOST),
         "es_port": int(os.getenv("ES_PORT", str(DEFAULT_ES_PORT))),
         "index_sessions": os.getenv("ES_INDEX_SESSIONS", DEFAULT_INDEX_SESSIONS),
         "index_rules": os.getenv("ES_INDEX_RULES", DEFAULT_INDEX_RULES),
-        "output_dir": Path(
-            os.getenv("RULES_OUTPUT_DIR", str(DEFAULT_RULES_OUTPUT_DIR))
-        ),
+        "output_dir": output_dir,
         "sid_ssh_base": int(
             os.getenv("SNORT_SID_SSH_BASE", str(DEFAULT_SSH_SID_BASE))
         ),
@@ -326,9 +340,26 @@ def fetch_session_documents(
     include_active: bool = False,
 ) -> list[SessionSummary]:
     """Fetch one or more session summaries from Elasticsearch."""
+    if session_id:
+        try:
+            doc = client.get(index=index_name, id=session_id)
+            if doc.get("found"):
+                return [SessionSummary.from_document(doc["_source"])]
+        except Exception:
+            pass
+
     filters: list[dict[str, Any]] = []
     if session_id:
-        filters.append({"term": {"session_id": session_id}})
+        filters.append({
+            "bool": {
+                "should": [
+                    {"term": {"session_id": session_id}},
+                    {"term": {"session_id.keyword": session_id}},
+                    {"ids": {"values": [session_id]}},
+                ],
+                "minimum_should_match": 1,
+            }
+        })
     if not include_active and not session_id:
         filters.append({"term": {"session_active": False}})
 
@@ -385,7 +416,66 @@ def index_rule_record(
     record: dict,
 ) -> None:
     """Store the generation record in Elasticsearch."""
-    client.index(index=index_name, id=record["session_id"], document=record)
+    client.index(index=index_name, id=record["session_id"], document=record, refresh=True)
+
+
+def generate_rules_for_session(
+    session_id: str,
+    session_data: dict[str, Any] | None = None,
+    es_client: Elasticsearch | None = None,
+    output_dir: Path | None = None,
+) -> dict[str, Any]:
+    """Generate rules for a specific session in-process and index them."""
+    settings = load_settings()
+    target_output_dir = resolve_rules_output_dir(output_dir or settings["output_dir"])
+
+    session_summary: SessionSummary | None = None
+    if session_data:
+        doc = dict(session_data)
+        doc.setdefault("session_id", session_id)
+        session_summary = SessionSummary.from_document(doc)
+
+    client = es_client
+    if client is None:
+        try:
+            client = create_es_client(settings["es_host"], settings["es_port"])
+        except Exception as exc:
+            logger.warning("Could not connect to Elasticsearch: %s", exc)
+
+    if session_summary is None and client is not None:
+        summaries = fetch_session_documents(
+            client=client,
+            index_name=settings["index_sessions"],
+            session_id=session_id,
+            limit=1,
+            include_active=True,
+        )
+        if summaries:
+            session_summary = summaries[0]
+
+    if session_summary is None:
+        raise ValueError(f"Could not find session data for session_id: {session_id}")
+
+    sid_allocator = SidAllocator(
+        output_root=target_output_dir,
+        ssh_base=settings["sid_ssh_base"],
+        web_base=settings["sid_web_base"],
+        db_base=settings["sid_db_base"],
+    )
+    generator = RuleGenerator(sid_allocator=sid_allocator)
+    record = generator.generate(session_summary)
+    snort_file, yara_file = write_rule_files(target_output_dir, record)
+    record["snort_file"] = snort_file
+    record["yara_file"] = yara_file
+
+    if client is not None:
+        try:
+            ensure_rules_index(client, settings["index_rules"])
+            index_rule_record(client, settings["index_rules"], record)
+        except Exception as exc:
+            logger.warning("Could not index rule record to Elasticsearch: %s", exc)
+
+    return record
 
 
 def parse_args() -> argparse.Namespace:

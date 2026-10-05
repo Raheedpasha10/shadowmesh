@@ -89,3 +89,24 @@ def test_attack_session_selection_prefers_successful_shell_and_merges_attempts()
     duplicate_shell = dict(successful, session_id="shell-reconnect", login_attempts=1, command_count=0)
     merged_duplicate = merge_attack_session(failed + [successful, duplicate_shell], primary)
     assert merged_duplicate["login_attempts"] == 3
+
+
+def test_latest_disk_rule_record_reads_files(monkeypatch, tmp_path) -> None:
+    from dashboard import server
+
+    monkeypatch.setattr(server, "RULES_DIR", tmp_path)
+    session_id = "test-sess-disk"
+    date_dir = tmp_path / "2026-05-05"
+    date_dir.mkdir(parents=True)
+    snort_file = date_dir / f"session_{session_id}.rules"
+    yar_file = date_dir / f"session_{session_id}.yar"
+    snort_file.write_text('alert tcp any any -> any 22 (msg:"Test rule"; sid:9000001;)\n')
+    yar_file.write_text("rule Honeypot_Test { condition: true }\n")
+
+    record = server.latest_disk_rule_record([session_id])
+    assert record is not None
+    assert record["session_id"] == session_id
+    assert len(record["snort_rules"]) == 1
+    assert len(record["yara_rules"]) == 1
+    assert record["rule_count"] == 2
+

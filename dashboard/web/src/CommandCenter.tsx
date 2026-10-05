@@ -79,7 +79,10 @@ export function deriveCanonicalMetrics(live: LiveResponse | null) {
         ? Math.round((new Date(session.session_end).getTime() - new Date(session.session_start).getTime()) / 1000)
         : null)
 
-  const totalRules = rules.reduce((acc, r) => acc + Number(r.rule_count ?? 0), 0)
+  const totalRules = rules.reduce(
+    (acc, r) => acc + (Number(r.rule_count) || ((r.snort_rules?.length ?? 0) + (r.yara_rules?.length ?? 0))),
+    0
+  )
   const snortRuleCount = rules.reduce((acc, r) => acc + (r.snort_rules?.length ?? 0), 0)
   const yaraRuleCount = rules.reduce((acc, r) => acc + (r.yara_rules?.length ?? 0), 0)
 
@@ -104,9 +107,9 @@ export function deriveCanonicalMetrics(live: LiveResponse | null) {
     snortRuleCount,
     yaraRuleCount,
     actions,
-    latestAction: actions.at(-1),
+    latestAction: actions.length > 0 ? actions[actions.length - 1] : undefined,
     rules,
-    latestRule: rules.at(-1),
+    latestRule: rules.length > 0 ? rules[rules.length - 1] : undefined,
   }
 }
 
@@ -1679,7 +1682,30 @@ function DetectChapter({
   metrics: ReturnType<typeof deriveCanonicalMetrics>
   onInvestigate: () => void
 }) {
-  const { totalRules, snortRuleCount, yaraRuleCount, latestRule } = metrics
+  const [fallbackRule, setFallbackRule] = useState<RuleRecord | null>(null)
+  const [ruleTab, setRuleTab] = useState<'snort' | 'yara'>('snort')
+
+  const effectiveRule = metrics.latestRule || fallbackRule
+  const snortRules = effectiveRule?.snort_rules ?? []
+  const yaraRules = effectiveRule?.yara_rules ?? []
+  const totalRules = Number(effectiveRule?.rule_count) || (snortRules.length + yaraRules.length) || metrics.totalRules
+  const snortRuleCount = snortRules.length || metrics.snortRuleCount
+  const yaraRuleCount = yaraRules.length || metrics.yaraRuleCount
+
+  useEffect(() => {
+    if (metrics.latestRule) return
+    let cancelled = false
+    api.get<{ records?: RuleRecord[] }>('/api/rules')
+      .then(res => {
+        if (!cancelled && res?.records && res.records.length > 0) {
+          setFallbackRule(res.records[res.records.length - 1])
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [metrics.latestRule])
 
   return (
     <div className="chapter-inner">
@@ -1700,11 +1726,11 @@ function DetectChapter({
           </p>
         </div>
 
-        {latestRule && (
+        {effectiveRule && (
           <div className="detect-record">
             <div className="decide-fact">
               <dt>Source Session</dt>
-              <dd className="mono-value">{latestRule.session_id ?? '—'}</dd>
+              <dd className="mono-value">{effectiveRule.session_id ?? '—'}</dd>
             </div>
             <div className="decide-fact">
               <dt>Rule Breakdown</dt>
@@ -1712,25 +1738,49 @@ function DetectChapter({
             </div>
             <div className="decide-fact">
               <dt>Generated Timestamp</dt>
-              <dd>{fmtTime(latestRule['@timestamp']) || '—'}</dd>
+              <dd>{fmtTime(effectiveRule['@timestamp']) || '—'}</dd>
             </div>
-            {latestRule.ttps_captured && latestRule.ttps_captured.length > 0 && (
+            {effectiveRule.ttps_captured && effectiveRule.ttps_captured.length > 0 && (
               <div className="decide-fact">
                 <dt>Mapped MITRE ATT&CK TTP Patterns</dt>
-                <dd className="mono-value">{latestRule.ttps_captured.join(' · ')}</dd>
+                <dd className="mono-value">{effectiveRule.ttps_captured.join(' · ')}</dd>
               </div>
             )}
           </div>
         )}
 
-        {latestRule?.snort_rules && latestRule.snort_rules.length > 0 && (
-          <div className="detect-preview">
-            <span className="detect-preview-label">Snort Signature Preview</span>
-            <pre className="detect-preview-code">{latestRule.snort_rules.join('\n')}</pre>
+        {effectiveRule && (
+          <div className="deception-preview-tabs" style={{ marginTop: '14px', marginBottom: '8px' }}>
+            <button
+              className={`deception-preview-tab ${ruleTab === 'snort' ? 'active' : ''}`}
+              onClick={() => setRuleTab('snort')}
+            >
+              Snort Signatures ({snortRuleCount})
+            </button>
+            <button
+              className={`deception-preview-tab ${ruleTab === 'yara' ? 'active' : ''}`}
+              onClick={() => setRuleTab('yara')}
+            >
+              YARA Filesystem Rule ({yaraRuleCount})
+            </button>
           </div>
         )}
 
-        {!latestRule && (
+        {ruleTab === 'snort' && snortRules.length > 0 && (
+          <div className="detect-preview">
+            <span className="detect-preview-label">Snort Network Signatures (.rules)</span>
+            <pre className="detect-preview-code">{snortRules.join('\n')}</pre>
+          </div>
+        )}
+
+        {ruleTab === 'yara' && yaraRules.length > 0 && (
+          <div className="detect-preview">
+            <span className="detect-preview-label">YARA Host Indicator Rule (.yar)</span>
+            <pre className="detect-preview-code">{yaraRules.join('\n\n')}</pre>
+          </div>
+        )}
+
+        {!effectiveRule && (
           <div className="decide-truthful-callout">
             <strong>Rule Generation Pipeline:</strong>
             <p>
