@@ -234,20 +234,13 @@ attacker, honeypot telemetry, adaptive action, bait files, and generated rules.
 The existing services remain independent; the dashboard only connects their
 controls and data in one browser interface.
 
-Build the web interface once after cloning:
-
-```bash
-cd dashboard/web
-npm install
-npm run build
-cd ../..
-```
-
-Start the local dashboard server:
+The production web interface is already pre-compiled in the repository. Simply start the local dashboard server:
 
 ```bash
 python -m dashboard.server
 ```
+
+*(Optional: if you modify the React frontend source in `dashboard/web`, re-compile with `cd dashboard/web && npm install && npm run build`)*
 
 Then open [http://localhost:8501](http://localhost:8501).
 

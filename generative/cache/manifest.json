@@ -1,0 +1,41 @@
+{
+  "generated_at": "2026-10-02T10:00:00Z",
+  "files": [
+    {
+      "cowrie_path": "/etc/passwd",
+      "content_type": "passwd",
+      "character_count": 890,
+      "checksum": "seed-passwd"
+    },
+    {
+      "cowrie_path": "/etc/shadow",
+      "content_type": "shadow",
+      "character_count": 450,
+      "checksum": "seed-shadow"
+    },
+    {
+      "cowrie_path": "/root/.bash_history",
+      "content_type": "bash_history",
+      "character_count": 320,
+      "checksum": "seed-bash-history"
+    },
+    {
+      "cowrie_path": "/var/www/html/config.php",
+      "content_type": "db_config",
+      "character_count": 280,
+      "checksum": "seed-db-config"
+    },
+    {
+      "cowrie_path": "/opt/novapay/.env",
+      "content_type": "env",
+      "character_count": 490,
+      "checksum": "seed-env"
+    },
+    {
+      "cowrie_path": "/home/admin/.ssh/id_rsa",
+      "content_type": "private_key",
+      "character_count": 920,
+      "checksum": "seed-id-rsa"
+    }
+  ]
+}

@@ -20,6 +20,7 @@ env/
 ENV/
 *.egg-info/
 dist/
+!dashboard/web/dist/
 build/
 .eggs/
 *.egg
@@ -52,9 +53,15 @@ scratch/evidence/
 scratch/mplconfig/
 
 # =============================================================================
-# GENERATED BAIT CONTENT (local AI output, not source code)
-# =============================================================================
-generative/cache/
+generative/cache/*
+!generative/cache/.gitkeep
+!generative/cache/passwd
+!generative/cache/shadow
+!generative/cache/bash_history.txt
+!generative/cache/db_config.php
+!generative/cache/.env
+!generative/cache/id_rsa
+!generative/cache/manifest.json
 
 # =============================================================================
 # DOCKER

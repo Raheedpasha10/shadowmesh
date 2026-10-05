@@ -165,7 +165,7 @@ services:
       - ES_HOST=http://172.18.0.20:9200
       - ES_INDEX_SESSIONS=honeypot-sessions
       - ES_INDEX_ACTIONS=honeypot-rl-actions
-      - AGENT_POLICY=${AGENT_POLICY:-show_fake_credentials_after_successful_session}
+      - AGENT_POLICY=${AGENT_POLICY:-ppo}
       - AGENT_POLL_INTERVAL_SECONDS=0.2
       - PPO_MODEL_PATH=${PPO_MODEL_PATH:-agent/models/shadowmesh_ppo_adaptive.zip}
     volumes:

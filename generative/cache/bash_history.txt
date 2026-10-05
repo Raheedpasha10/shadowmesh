@@ -1,0 +1,15 @@
+ls -la
+cd /opt/novapay
+git pull origin main
+npm install
+npm run build
+pm2 restart all
+sudo systemctl restart nginx
+cat /var/log/nginx/access.log | head -n 20
+curl -s http://localhost:3001/health
+df -h
+free -m
+netstat -tulpn
+uptime
+cat /opt/novapay/.env
+docker ps
