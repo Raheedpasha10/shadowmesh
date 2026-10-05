@@ -76,7 +76,7 @@ export type Attack = {
   started_at: string
   status: 'running' | 'completed' | 'failed'
   returncode?: number | null
-  phase?: 'starting_services' | 'waiting_for_services' | 'running_attack' | 'processing_events' | 'waiting_for_action' | 'generating_rules' | 'completed' | 'failed'
+  phase?: 'starting_services' | 'waiting_for_services' | 'running_attack' | 'processing_events' | 'waiting_for_action' | 'materializing_bait' | 'generating_rules' | 'completed' | 'failed'
   message?: string
   output?: string
   is_follow_up?: boolean

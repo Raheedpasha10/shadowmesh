@@ -103,3 +103,5 @@ dashboard/web/*.tsbuildinfo
 dashboard/web/vite.config.js
 dashboard/web/vite.config.d.ts
 dashboard/.profile_state.json
+attachments/
+*.tar.gz

@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect, useRef } from 'react'
 import type { Action, BaitFile, Event, LiveResponse, RuleRecord, Service, AttackerProfile } from './types'
 import { ATTACKER_PROFILES } from './types'
 import { ArrowIcon, BaitIcon, ChevronIcon, PlayIcon, RulesIcon, ShieldIcon, TerminalIcon } from './icons'
+import { api } from './api'
 
 /* ═══════════════════════════════════════════════════
    Types & Constants
@@ -142,16 +143,19 @@ export function deriveActiveStageFromBackend(
   if (isFailed) {
     let termStage: Stage = 'attack'
     if (hasRules) termStage = 'detect'
-    else if (hasActions) termStage = 'decide'
+    else if (hasActions) termStage = 'deceive'
     else if (hasCommands) termStage = 'observe'
     return { stage: termStage, isCompleted: true, isRunning: false, isIdle: false }
   }
 
-  // Active running scenario progression strictly based on real evidence:
-  if (hasRules || phase === 'generating_rules') {
+  // Active running scenario progression strictly based on real evidence and phase:
+  if (phase === 'generating_rules' || (hasRules && phase !== 'materializing_bait' && phase !== 'waiting_for_action')) {
     return { stage: 'detect', isCompleted: false, isRunning, isIdle: false }
   }
-  if (hasActions || phase === 'waiting_for_action') {
+  if (phase === 'materializing_bait' || (hasActions && !hasRules && phase !== 'waiting_for_action')) {
+    return { stage: 'deceive', isCompleted: false, isRunning, isIdle: false }
+  }
+  if (phase === 'waiting_for_action' || hasActions) {
     return { stage: 'decide', isCompleted: false, isRunning, isIdle: false }
   }
   const isSessionClosed =
@@ -268,10 +272,17 @@ export function TwoSessionCard({
   metrics: ReturnType<typeof deriveCanonicalMetrics>
 }) {
   const prev = live?.previous_run
-  if (!prev) return null
+  const currentSessionId = live?.session?.session_id
+  const isFollowUpRun = Boolean(live?.attack?.is_follow_up)
+  const isDifferentSession = Boolean(prev?.session_id && currentSessionId && prev.session_id !== currentSessionId)
+  const hasFollowUpSession = isFollowUpRun || isDifferentSession
+  const followUpHappened = metrics.hasFollowUp || Boolean(prev?.follow_up_occurred && hasFollowUpSession)
 
-  const isCurrentFollowUp = Boolean(live?.attack?.is_follow_up || (prev.session_id && prev.session_id !== live?.session?.session_id))
-  const followUpHappened = metrics.hasFollowUp || prev.follow_up_occurred
+  if (!prev && !currentSessionId) return null
+
+  const probeSessionId = (hasFollowUpSession && prev?.session_id) ? prev.session_id : (currentSessionId ?? prev?.session_id ?? '')
+  const probeProfile = (hasFollowUpSession && prev?.profile) ? prev.profile : (live?.attack?.profile ?? prev?.profile)
+  const probeAction = (hasFollowUpSession && prev?.action) ? prev.action : (metrics.latestAction ?? prev?.action)
 
   return (
     <div className="two-session-card">
@@ -281,7 +292,7 @@ export function TwoSessionCard({
           <h4>Two-Session Adaptive Deception Lifecycle</h4>
         </div>
         <span className="two-session-badge">
-          {isCurrentFollowUp ? 'Multi-Session Deception Active' : 'Session History Tracked'}
+          {hasFollowUpSession ? 'Multi-Session Deception Active' : 'Session History Tracked'}
         </span>
       </div>
 
@@ -289,13 +300,13 @@ export function TwoSessionCard({
         {/* Session 1: Initial Probe */}
         <div className="session-col">
           <span className="session-col-eyebrow">Session 01 · Initial Probe</span>
-          <strong className="session-col-title">{profileName(prev.profile)} Intrusion</strong>
+          <strong className="session-col-title">{profileName(probeProfile)} Intrusion</strong>
           <div className="session-col-details">
-            <div><span>Session ID:</span> <code>{prev.session_id?.slice(0, 14)}</code></div>
+            <div><span>Session ID:</span> <code>{probeSessionId ? probeSessionId.slice(0, 14) : '—'}</code></div>
             <div><span>Observed Action:</span> Attacker queried <code>/etc/passwd</code></div>
             <div><span>HoneyFS State:</span> Default unseeded decoy</div>
             <div><span>Follow-up Queries:</span> <strong>0</strong> (no bait marker present)</div>
-            <div><span>Baseline Decision:</span> <code>{prev.action?.name ?? 'show_fake_credentials'}</code></div>
+            <div><span>Adaptive Decision:</span> <code>{probeAction?.name ?? 'show_fake_credentials'}</code></div>
             <div><span>Prepared Scope:</span> <strong>Next session</strong></div>
           </div>
           <div className="session-col-outcome outcome-unseeded">
@@ -307,16 +318,18 @@ export function TwoSessionCard({
         <div className="session-col col-primed">
           <span className="session-col-eyebrow">Session 02 · Prepared Environment</span>
           <strong className="session-col-title">
-            {live?.attack?.profile ? profileName(live.attack.profile) : 'Follow-up'} Intrusion
+            {hasFollowUpSession ? `${profileName(live?.attack?.profile || 'Follow-up')} Intrusion` : 'Awaiting Follow-up Intrusion'}
           </strong>
           <div className="session-col-details">
-            <div><span>Session ID:</span> <code>{live?.session?.session_id?.slice(0, 14) ?? 'In Progress'}</code></div>
+            <div><span>Session ID:</span> <code>{hasFollowUpSession ? (currentSessionId?.slice(0, 14) ?? 'In Progress') : 'Pending Launch'}</code></div>
             <div><span>HoneyFS State:</span> <strong>Synthetic accounts mounted</strong> (<code>backupsvc</code>, <code>cloudsync</code>)</div>
-            <div><span>Attacker Behavior:</span> Re-probed <code>/etc/passwd</code> and observed synthetic decoy entries</div>
+            <div><span>Attacker Behavior:</span> {hasFollowUpSession ? 'Re-probed /etc/passwd and observed synthetic decoy entries' : 'Awaiting follow-up intruder to probe staged decoy'}</div>
             <div>
               <span>Real Follow-up Query:</span>{' '}
-              {metrics.adaptiveFollowUpCmd ? (
+              {hasFollowUpSession && metrics.adaptiveFollowUpCmd ? (
                 <code>{metrics.adaptiveFollowUpCmd.command}</code>
+              ) : hasFollowUpSession && metrics.hasFollowUp ? (
+                <code>Bait query captured</code>
               ) : (
                 <code>Awaiting command...</code>
               )}
@@ -325,8 +338,10 @@ export function TwoSessionCard({
           <div className={`session-col-outcome ${followUpHappened ? 'outcome-payoff' : 'outcome-unseeded'}`}>
             {followUpHappened ? (
               <span>✓ Prepared bait was queried by the follow-up intruder</span>
-            ) : (
+            ) : hasFollowUpSession ? (
               <span>Decoy environment prepared; awaiting intruder queries...</span>
+            ) : (
+              <span>Decoy environment prepared. Click &quot;Run Follow-up Intrusion&quot; above to test bait engagement.</span>
             )}
           </div>
         </div>
@@ -1503,11 +1518,65 @@ function DeceiveChapter({
   const action = metrics.latestAction
   const readyCount = bait.filter(f => f.exists).length
   const [activeTab, setActiveTab] = useState<'passwd' | 'shadow' | 'env' | 'history'>('passwd')
+  const [fileContents, setFileContents] = useState<Record<string, string>>({})
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const tabToFileId: Record<string, string> = {
+    passwd: 'passwd',
+    shadow: 'shadow',
+    env: '.env',
+    history: 'bash_history.txt',
+  }
+
+  // Pre-load all bait files from live honeypot filesystem
+  useEffect(() => {
+    Object.entries(tabToFileId).forEach(([tabKey, fileId]) => {
+      api.get<{ content: string }>(`/api/bait/${encodeURIComponent(fileId)}`)
+        .then(res => {
+          if (res?.content) {
+            setFileContents(prev => ({ ...prev, [tabKey]: res.content }))
+          }
+        })
+        .catch(() => {})
+    })
+  }, [live?.actions?.length])
+
+  // Explicit fetch when active tab is selected if not yet cached
+  useEffect(() => {
+    const fileId = tabToFileId[activeTab]
+    if (!fileId || fileContents[activeTab]) return
+
+    let cancelled = false
+    setLoading(true)
+    api.get<{ content: string }>(`/api/bait/${encodeURIComponent(fileId)}`)
+      .then(res => {
+        if (!cancelled && res?.content) {
+          setFileContents(prev => ({ ...prev, [activeTab]: res.content }))
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [activeTab, fileContents])
 
   const samplePasswd = `root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin\ndeploy:x:1001:1001:Deploy User:/home/deploy:/bin/bash\n# --- Synthetic Accounts Staged by ShadowMesh --- \nbackupsvc:x:1004:1004:Backup Service:/var/backups:/bin/bash\ncloudsync:x:1005:1005:Cloud Sync:/srv/cloudsync:/bin/bash`
   const sampleShadow = `root:*:19000:0:99999:7:::\ndeploy:$6$V4lid$Z84x01e29uL...:19000:0:99999:7:::\n# --- Synthetic Decoy Hashes Injected ---\nbackupsvc:$6$BkSvc2026$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./abcdefghijk:19700:0:99999:7:7:7\ncloudsync:$6$CldSync2026$mnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./abcdefghijklmnopq:19700:0:99999:7:7:7`
   const sampleEnv = `APP_ENV=production\nDB_HOST=10.10.24.12\nDB_NAME=novapay\nDB_USER=novapay_app\nDB_PASSWORD=N0vaPay-ShadowMesh-2026!\nAWS_ACCESS_KEY_ID=AKIA7NOVAPAYDEMO2026\nAWS_SECRET_ACCESS_KEY=0nlyF4k3ButL00ksRealForShadowMeshDemo2026\nrotation_marker=shadowmesh_live_credentials`
   const sampleHistory = `sudo su -\ncd /srv/novapay\nvim .env\nexport AWS_ACCESS_KEY_ID=AKIA7NOVAPAYDEMO2026\nmysql -h 10.10.24.12 -u novapay_app -pN0vaPay-ShadowMesh-2026!\nhistory -c`
+
+  const activeContent = fileContents[activeTab] || (
+    loading ? 'Loading live bait artifact from filesystem...' : (
+      activeTab === 'passwd' ? samplePasswd :
+      activeTab === 'shadow' ? sampleShadow :
+      activeTab === 'env' ? sampleEnv :
+      sampleHistory
+    )
+  )
 
   return (
     <div className="chapter-inner">
@@ -1559,10 +1628,7 @@ function DeceiveChapter({
               </button>
             </div>
             <pre className="deception-preview-body">
-              {activeTab === 'passwd' && samplePasswd}
-              {activeTab === 'shadow' && sampleShadow}
-              {activeTab === 'env' && sampleEnv}
-              {activeTab === 'history' && sampleHistory}
+              {activeContent}
             </pre>
           </div>
         </div>

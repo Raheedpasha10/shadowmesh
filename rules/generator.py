@@ -329,7 +329,7 @@ def fetch_session_documents(
     filters: list[dict[str, Any]] = []
     if session_id:
         filters.append({"term": {"session_id": session_id}})
-    if not include_active:
+    if not include_active and not session_id:
         filters.append({"term": {"session_active": False}})
 
     query: dict[str, Any]
@@ -344,6 +344,18 @@ def fetch_session_documents(
         sort=[{"@timestamp": {"order": "desc"}}],
         query=query,
     )
+    if session_id and not response["hits"]["hits"]:
+        try:
+            client.indices.refresh(index=index_name)
+            response = client.search(
+                index=index_name,
+                size=limit,
+                sort=[{"@timestamp": {"order": "desc"}}],
+                query=query,
+            )
+        except Exception:
+            pass
+
     return [
         SessionSummary.from_document(hit["_source"])
         for hit in response["hits"]["hits"]

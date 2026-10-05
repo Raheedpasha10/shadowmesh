@@ -439,9 +439,12 @@ def launch_attack(profile: str, sessions: int, is_follow_up: bool = False) -> di
 
         if session and session.get("session_id"):
             session_id = str(session["session_id"])
-            set_attack_phase("waiting_for_action", "The adaptive agent is evaluating the completed session.")
             remember_session_profile(session_id, profile)
-            for _ in range(15):
+
+            # Stage 04: Decide - The adaptive agent evaluates the completed session
+            set_attack_phase("waiting_for_action", "The adaptive agent is evaluating the completed session.")
+            actions: list[dict[str, Any]] = []
+            for _ in range(8):
                 actions = search_index(
                     "honeypot-rl-actions",
                     size=1,
@@ -451,23 +454,74 @@ def launch_attack(profile: str, sessions: int, is_follow_up: bool = False) -> di
                     break
                 threading.Event().wait(1)
 
-            set_attack_phase("generating_rules", "Turning the observed behaviour into detection rules.")
-            rule_returncode, rule_output = run_process(
+            # Fallback if background agent container has not polled yet
+            if not actions:
+                run_process(
+                    [
+                        project_python(),
+                        "-m",
+                        "agent.runner",
+                        "--session-id",
+                        session_id,
+                        "--once",
+                        "--include-closed",
+                    ],
+                    env_overrides={"ES_HOST": "localhost", "ES_PORT": "9200"},
+                    timeout=30,
+                )
+                actions = search_index(
+                    "honeypot-rl-actions",
+                    size=1,
+                    query={"term": {"session_id": session_id}},
+                )
+
+            # Allow reviewer to visually register Stage 04 Decide
+            threading.Event().wait(1.5)
+
+            # Stage 05: Deceive - Materialize decoy credentials in HoneyFS
+            set_attack_phase("materializing_bait", "The executor is mounting adaptive decoy artifacts into Cowrie filesystem.")
+            run_process(
                 [
                     project_python(),
                     "-m",
-                    "rules.generator",
-                    "--limit",
-                    "1",
-                    "--session-id",
-                    session_id,
+                    "agent.executor",
+                    "--once",
                 ],
                 env_overrides={"ES_HOST": "localhost", "ES_PORT": "9200"},
-                timeout=120,
+                timeout=30,
             )
-            append_job_output(job, rule_output)
+            # Allow reviewer to visually register Stage 05 Deceive
+            threading.Event().wait(2.0)
+
+            # Stage 06: Detect - Compile Snort and YARA detection rules
+            set_attack_phase("generating_rules", "Turning the observed behaviour into detection rules.")
+            rule_returncode = 1
+            rule_output = ""
+            for _ in range(5):
+                rule_returncode, rule_output = run_process(
+                    [
+                        project_python(),
+                        "-m",
+                        "rules.generator",
+                        "--limit",
+                        "1",
+                        "--session-id",
+                        session_id,
+                        "--include-active",
+                    ],
+                    env_overrides={"ES_HOST": "localhost", "ES_PORT": "9200"},
+                    timeout=120,
+                )
+                append_job_output(job, rule_output)
+                if rule_returncode == 0:
+                    break
+                threading.Event().wait(1)
+
             if rule_returncode != 0:
                 append_job_output(job, "The attack completed, but automatic rule generation failed.")
+            else:
+                # Allow reviewer to visually register Stage 06 Detect
+                threading.Event().wait(2.0)
         else:
             append_job_output(job, "The attack completed, but no new session summary arrived before the timeout.")
 
@@ -479,7 +533,7 @@ def launch_attack(profile: str, sessions: int, is_follow_up: bool = False) -> di
             job["finished_at"] = utc_now()
             job["process"] = None
             if session and session.get("session_id"):
-                _previous_attack_summary = {
+                summary_data = {
                     "job_id": job["id"],
                     "profile": profile,
                     "session_id": str(session["session_id"]),
@@ -491,6 +545,9 @@ def launch_attack(profile: str, sessions: int, is_follow_up: bool = False) -> di
                     "command_count": session.get("command_count", len(session.get("commands", []))),
                     "completed_at": utc_now(),
                 }
+                # Preserve the initial probe session summary when follow-up runs
+                if not is_follow_up or _previous_attack_summary is None:
+                    _previous_attack_summary = summary_data
 
     threading.Thread(target=run_scenario, daemon=True).start()
     return public_job(job)
@@ -822,14 +879,25 @@ def bait_list() -> list[dict[str, Any]]:
 
 
 def bait_content(file_id: str) -> dict[str, Any] | None:
-    bait = next((item for item in BAIT_FILES if item.local_path.name == file_id), None)
+    clean_id = file_id.strip("/")
+    bait = next(
+        (
+            item for item in BAIT_FILES
+            if item.local_path.name == file_id
+            or item.local_path.name == clean_id
+            or item.local_path.name == Path(clean_id).name
+            or item.attacker_path == file_id
+            or item.attacker_path == f"/{clean_id}"
+        ),
+        None,
+    )
     if not bait:
         return None
     path = ROOT_DIR / bait.local_path
     if not path.exists():
         return None
     return {
-        "id": file_id,
+        "id": bait.local_path.name,
         "name": bait.name,
         "attacker_path": bait.attacker_path,
         "explanation": bait.explanation,
